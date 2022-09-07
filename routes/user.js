@@ -214,4 +214,66 @@ router.put('/reset-password', async (req, res) => {
     return;
   }
 });
+
+/** 로그인 검증 */
+const loginSchema = Joi.object({
+  u_Id: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{5,10}$')).required(),
+  u_Pw: Joi.string()
+    .pattern(
+      new RegExp(
+        '^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,20}$',
+      ),
+    )
+    .required(),
+});
+
+/** 로그인 */
+router.post('/login', async (req, res) => {
+  try {
+    const { u_Id, u_Pw } = await loginSchema.validateAsync(req.body);
+    const user = await User.findOne({ u_Id }).exec();
+    if (!user) {
+      res.status(400).send({
+        errorMessage: '아이디 또는 비밀번호를 확인해주세요',
+      });
+      return;
+    }
+    let u_Idx = user.u_Idx;
+    let u_Name = user.u_Name;
+    let u_Address1 = user.u_Address1;
+    let u_Address2 = user.u_Address2;
+    let u_Phone = user.u_Phone;
+    let u_Img = user.u_Img;
+
+    /** 비밀번호 매치 검사 */
+    const authenticate = await bcrypt.compare(u_Pw, user.u_Pw);
+
+    if (authenticate === true) {
+      const token = jwt.sign({ u_Idx: user.u_Idx }, jwtKey);
+
+      res.status(200).send({
+        u_Idx,
+        u_Id,
+        u_Name,
+        u_Address1,
+        u_Address2,
+        u_Phone,
+        u_Img,
+        token,
+      });
+      return;
+    } else {
+      res.status(401).send({
+        errorMessage: '아이디 또는 비밀번호를 확인해주세요',
+      });
+      return;
+    }
+  } catch (error) {
+    res.status(400).send({
+      errorMessage: '입력한 내용을 다시 확인해주세요',
+    });
+    return;
+  }
+});
+
 module.exports = router;

@@ -50,7 +50,7 @@ router.post('/register', async (req, res) => {
       u_Idx = recentUser[0]['u_Idx'] + 1;
     }
     /** 아이디 중복 확인 */
-    const userId = await User.find({ u_Id: u_Id });
+    const userId = await User.find({ u_Id: u_Id }).exec();
     if (userId.length !== 0) {
       res.status(400).send({
         errorMessage: '중복된 아이디입니다.',
@@ -58,7 +58,7 @@ router.post('/register', async (req, res) => {
       return;
     }
     /** 연락처 중복 확인 */
-    const userPhone = await User.find({ u_Phone: u_Phone });
+    const userPhone = await User.find({ u_Phone: u_Phone }).exec();
     if (userPhone.length !== 0) {
       res.status(400).send({
         errorMessage: '중복된 연락처입니다.',
@@ -113,15 +113,18 @@ const findIdSchema = Joi.object({
 router.get('/find-id', async (req, res) => {
   try {
     const { u_Name, u_Phone } = await findIdSchema.validateAsync(req.body);
-    const userName = await User.find({ u_Name: u_Name });
-    const userPhone = await User.find({ u_Phone: u_Phone });
+    const userName = await User.find({ u_Name: u_Name }).exec();
+    const userPhone = await User.find({ u_Phone: u_Phone }).exec();
     if (userName.length === 0 || userPhone.length === 0) {
       res.status(400).send({
         errorMessage: '존재하지 않는 회원입니다.',
       });
       return;
     }
-    let data = await User.findOne({ u_Name, u_Phone }, { _id: 0, u_Id: 1 });
+    let data = await User.findOne(
+      { u_Name, u_Phone },
+      { _id: 0, u_Id: 1 },
+    ).exec();
 
     res.status(200).send(data);
   } catch (error) {
@@ -147,9 +150,9 @@ router.get('/find-password', async (req, res) => {
     const { u_Id, u_Name, u_Phone } = await findPwSchema.validateAsync(
       req.body,
     );
-    const userId = await User.find({ u_Id: u_Id });
-    const userName = await User.find({ u_Name: u_Name });
-    const userPhone = await User.find({ u_Phone: u_Phone });
+    const userId = await User.find({ u_Id: u_Id }).exec();
+    const userName = await User.find({ u_Name: u_Name }).exec();
+    const userPhone = await User.find({ u_Phone: u_Phone }).exec();
     if (userId.length == 0 || userName.length == 0 || userPhone.length == 0) {
       res.status(400).send({
         errorMessage: '존재하지 않는 회원입니다.',
@@ -159,7 +162,7 @@ router.get('/find-password', async (req, res) => {
     let data = await User.findOne(
       { u_Name, u_Phone, u_Id },
       { _id: 0, u_Idx: 1 },
-    );
+    ).exec();
     if (data == null) {
       res.status(400).send({
         errorMessage: '존재하지 않는 회원입니다.',
@@ -192,7 +195,7 @@ router.put('/reset-password', async (req, res) => {
   try {
     const { u_Idx, u_Pw } = await pwSchema.validateAsync(req.body);
     /** 존재하는 유저인가 확인 */
-    const userNo = await User.find({ u_Idx });
+    const userNo = await User.find({ u_Idx }).exec();
     if (userNo.length === 0) {
       res.status(400).send({
         errorMessage: '존재하지 않는 회원입니다.',
@@ -284,7 +287,7 @@ router.put('/:u_Idx', authMiddleware, async (req, res) => {
     const { u_Idx } = req.params;
     const { user } = res.locals;
 
-    const db = await User.findOne({ u_Idx });
+    const db = await User.findOne({ u_Idx }).exec();
     const tokenUser = user.u_Idx;
     const dbUser = db.u_Idx;
 
@@ -324,7 +327,7 @@ router.delete('/:u_Idx', authMiddleware, async (req, res) => {
   try {
     const { u_Idx } = req.params;
     const { user } = res.locals;
-    const db = await User.findOne({ u_Idx });
+    const db = await User.findOne({ u_Idx }).exec();
     const tokenUser = user.u_Idx;
     const dbUser = db.u_Idx;
 

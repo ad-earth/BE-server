@@ -132,4 +132,96 @@ router.get('/find-id', async (req, res) => {
     });
   }
 });
+
+/** 비밀번호 찾기 1차 검증 */
+const findPwSchema = Joi.object({
+  a_Id: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{5,10}$')).required(),
+  a_Brand: Joi.string().required(),
+  a_Number: Joi.string().required(),
+});
+
+/** 비밀번호 찾기 1차 */
+router.get('/find-password', async (req, res) => {
+  try {
+    const { a_Id, a_Brand, a_Number } = await findPwSchema.validateAsync(
+      req.body,
+    );
+
+    const adminId = await Admin.find({ a_Id: a_Id }).exec();
+    const adminBrand = await Admin.find({ a_Brand: a_Brand }).exec();
+    const adminNumber = await Admin.find({ a_Number: a_Number }).exec();
+
+    if (
+      adminId.length == 0 ||
+      adminBrand.length == 0 ||
+      adminNumber.length == 0
+    ) {
+      res.status(400).send({
+        errorMessage: '존재하지 않는 회원입니다.',
+      });
+      return;
+    }
+
+    let data = await Admin.findOne(
+      { a_Id, a_Brand, a_Number },
+      { _id: 0, a_Idx: 1 },
+    ).exec();
+
+    if (data == null) {
+      res.status(400).send({
+        errorMessage: '존재하지 않는 회원입니다.',
+      });
+      return;
+    }
+    res.status(200).send(data);
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      errorMessage: '요청한 데이터 형식이 올바르지 않습니다.',
+    });
+  }
+});
+
+/** 비밀번호 찾기 2차 검증 */
+const pwSchema = Joi.object({
+  a_Pw: Joi.string()
+    .pattern(
+      new RegExp(
+        '^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,20}$',
+      ),
+    )
+    .required(),
+  a_Idx: Joi.number().required(),
+});
+
+/** 비밀번호 찾기 2차 */
+router.put('/reset-password', async (req, res) => {
+  try {
+    const { a_Idx, a_Pw } = await pwSchema.validateAsync(req.body);
+
+    /** 존재하는 유저인가 확인 */
+    const adminNo = await Admin.find({ a_Idx }).exec();
+    if (adminNo.length === 0) {
+      res.status(400).send({
+        errorMessage: '존재하지 않는 회원입니다.',
+      });
+      return;
+    }
+
+    const salt = await bcrypt.genSalt();
+    const hashPw = await bcrypt.hash(a_Pw, salt);
+    await Admin.updateOne({ a_Idx }, { $set: { a_Pw: hashPw } });
+    res.status(201).send({
+      success: true,
+    });
+    return;
+  } catch (error) {
+    res.status(400).send({
+      success: false,
+      errorMessage: '요청한 데이터 형식이 올바르지 않습니다.',
+    });
+    return;
+  }
+});
+
 module.exports = router;

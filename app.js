@@ -1,11 +1,14 @@
 const express = require('express');
+const cors = require('cors');
 const app = express();
+app.use(cors());
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const port = 3005;
 
 /** Router */
 const userRouter = require('./routes/user');
+const adminRouter = require('./routes/admin');
 
 /** DB */
 const connect = require('./schemas');
@@ -20,6 +23,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/users', express.urlencoded({ extended: false }), userRouter);
+app.use('/admins', express.urlencoded({ extended: false }), adminRouter);
 
 app.listen(port, () => console.log(`http://localhost:${port}`));
 

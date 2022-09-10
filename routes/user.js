@@ -3,12 +3,12 @@ const jwt = require('jsonwebtoken');
 const router = express.Router();
 const User = require('../schemas/users');
 const bcrypt = require('bcrypt');
-const authMiddleware = require('../middlewares/auth-middleware');
+const authMiddleware = require('../middlewares/user-middleware');
 const Joi = require('joi');
 const dotenv = require('dotenv');
 
 dotenv.config();
-const jwtKey = process.env.JWT_TOKEN;
+const jwtKey = process.env.U_TOKEN;
 
 /** 회원가입 검증 */
 const registerSchema = Joi.object({
@@ -24,7 +24,7 @@ const registerSchema = Joi.object({
     .pattern(new RegExp('^01([0|1|6|7|8|9])-?([0-9]{3,4})-?([0-9]{4})$'))
     .required(),
   u_Name: Joi.string().required(),
-  u_Gender: Joi.boolean().required(),
+  u_Gender: Joi.string().required(),
   u_Address1: Joi.string().required(),
   u_Address2: Joi.string().required(),
   u_Img: Joi.string().required(),
@@ -245,6 +245,7 @@ router.post('/login', async (req, res) => {
     let u_Name = user.u_Name;
     let u_Address1 = user.u_Address1;
     let u_Address2 = user.u_Address2;
+    let u_Gender = user.u_Gender;
     let u_Phone = user.u_Phone;
     let u_Img = user.u_Img;
 
@@ -260,6 +261,7 @@ router.post('/login', async (req, res) => {
         u_Name,
         u_Address1,
         u_Address2,
+        u_Gender,
         u_Phone,
         u_Img,
         token,

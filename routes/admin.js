@@ -224,4 +224,61 @@ router.put('/reset-password', async (req, res) => {
   }
 });
 
+/** 로그인 검증 */
+const loginSchema = Joi.object({
+  a_Id: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{5,10}$')).required(),
+  a_Pw: Joi.string()
+    .pattern(
+      new RegExp(
+        '^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,20}$',
+      ),
+    )
+    .required(),
+});
+
+/** 로그인 */
+router.post('/login', async (req, res) => {
+  try {
+    const { a_Id, a_Pw } = await loginSchema.validateAsync(req.body);
+    const admin = await Admin.findOne({ a_Id }).exec();
+    if (!admin) {
+      res.status(400).send({
+        errorMessage: '아이디 또는 비밀번호를 확인해주세요',
+      });
+      return;
+    }
+    let a_Idx = admin.a_Idx;
+    let a_Brand = admin.a_Brand;
+    let a_Number = admin.a_Number;
+    let a_Phone = admin.a_Phone;
+
+    /** 비밀번호 매치 검사 */
+    const authenticate = await bcrypt.compare(a_Pw, admin.a_Pw);
+
+    if (authenticate === true) {
+      const token = jwt.sign({ a_Idx: admin.a_Idx }, jwtKey);
+
+      res.status(200).send({
+        a_Idx,
+        a_Id,
+        a_Brand,
+        a_Number,
+        a_Phone,
+        token,
+      });
+      return;
+    } else {
+      res.status(401).send({
+        errorMessage: '아이디 또는 비밀번호를 확인해주세요',
+      });
+      return;
+    }
+  } catch (error) {
+    res.status(400).send({
+      errorMessage: '입력한 내용을 다시 확인해주세요',
+    });
+    return;
+  }
+});
+
 module.exports = router;

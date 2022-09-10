@@ -100,4 +100,36 @@ router.post('/register', async (req, res) => {
   }
 });
 
+/** 아이디 검증 */
+const findIdSchema = Joi.object({
+  a_Brand: Joi.string().required(),
+  a_Number: Joi.string().required(),
+});
+
+/** 아이디 찾기 */
+router.get('/find-id', async (req, res) => {
+  try {
+    const { a_Brand, a_Number } = await findIdSchema.validateAsync(req.body);
+    const adminBrand = await Admin.find({ a_Brand: a_Brand }).exec();
+    const adminNumber = await Admin.find({ a_Number: a_Number }).exec();
+
+    if (adminBrand.length === 0 || adminNumber.length === 0) {
+      res.status(400).send({
+        errorMessage: '존재하지 않는 회원입니다.',
+      });
+      return;
+    }
+    let data = await Admin.findOne(
+      { a_Brand, a_Number },
+      { _id: 0, a_Id: 1 },
+    ).exec();
+
+    res.status(200).send(data);
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      errorMessage: '요청한 데이터 형식이 올바르지 않습니다.',
+    });
+  }
+});
 module.exports = router;

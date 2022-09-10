@@ -281,4 +281,32 @@ router.post('/login', async (req, res) => {
   }
 });
 
+/** 회원 탈퇴 */
+router.delete('/:a_Idx', auth, async (req, res) => {
+  try {
+    const { a_Idx } = req.params;
+    const { admin } = res.locals;
+    const db = await Admin.findOne({ a_Idx }).exec();
+    const tokenAdmin = admin.a_Idx;
+    const dbAdmin = db.a_Idx;
+
+    if (tokenAdmin === dbAdmin) {
+      await Admin.deleteOne({ a_Idx });
+      res.status(200).send({
+        success: true,
+      });
+      return;
+    } else {
+      res.status(401).send({
+        errorMessage: '권한 없음',
+      });
+      return;
+    }
+  } catch (error) {
+    res.status(400).send({
+      errorMessage: '삭제 중 오류 발생',
+    });
+  }
+});
+
 module.exports = router;

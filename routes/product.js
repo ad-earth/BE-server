@@ -202,4 +202,60 @@ router.delete('/', auth, async (req, res) => {
   }
 });
 
+/** 상품 노출 여부 */
+router.put('/status/:p_No', auth, async (req, res) => {
+  try {
+    const { p_No } = req.params;
+
+    /** token */
+    const { admin } = res.locals;
+    const a_Idx = admin.a_Idx;
+
+    let db = await Product.findOne(
+      { p_No },
+      { _id: 0, a_Idx: 1, p_Status: 1 },
+    ).exec();
+
+    if (a_Idx == db.a_Idx) {
+      if (db.p_Status == true) {
+        await Product.updateOne(
+          { p_No },
+          {
+            $set: {
+              p_Status: false,
+            },
+          },
+        );
+        res.status(201).json({
+          success: true,
+        });
+        return;
+      } else {
+        await Product.updateOne(
+          { p_No },
+          {
+            $set: {
+              p_Status: true,
+            },
+          },
+        );
+        res.status(201).json({
+          success: true,
+        });
+        return;
+      }
+    } else {
+      res.status(401).json({
+        success: false,
+        errorMessage: '권한 없음',
+      });
+      return;
+    }
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+    });
+  }
+});
+
 module.exports = router;

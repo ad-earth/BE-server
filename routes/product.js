@@ -60,12 +60,12 @@ router.post('/', auth, async (req, res) => {
       createdAt,
     });
 
-    res.status(201).send({
+    res.status(201).json({
       success: true,
       message: 'post success',
     });
   } catch (error) {
-    res.status(400).send({
+    res.status(400).json({
       success: false,
       errorMessage: '상품 등록 실패',
     });
@@ -102,6 +102,62 @@ router.get('/', auth, async (req, res) => {
       cnt,
       list,
     });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+    });
+  }
+});
+
+/** 상품수정 */
+router.put('/:p_No', auth, async (req, res) => {
+  try {
+    const {
+      p_Category,
+      p_Thumbnail,
+      p_Name,
+      p_Cost,
+      p_Sale,
+      p_Discount,
+      p_Option,
+      p_Desc,
+    } = req.body;
+    const { p_No } = req.params;
+
+    /** token */
+    const { admin } = res.locals;
+    const a_Idx = admin.a_Idx;
+
+    let db = await Product.findOne({ p_No }, { _id: 0, a_Idx: 1 }).exec();
+
+    /** token과 param의 a_Idx 일치하는지 확인 */
+    if (a_Idx == db.a_Idx) {
+      await Product.updateOne(
+        { p_No },
+        {
+          $set: {
+            p_Category,
+            p_Thumbnail,
+            p_Name,
+            p_Cost,
+            p_Sale,
+            p_Discount,
+            p_Option,
+            p_Desc,
+          },
+        },
+      );
+      res.status(201).json({
+        success: true,
+      });
+      return;
+    } else {
+      res.status(401).json({
+        success: false,
+        errorMessage: '권한 없음',
+      });
+      return;
+    }
   } catch (error) {
     res.status(400).json({
       success: false,

@@ -40,6 +40,9 @@ router.post('/', auth, async (req, res) => {
     /** soldout */
     let p_Soldout = false;
 
+    /** 상품 노출 */
+    let p_Status = true;
+
     await Product.create({
       p_No,
       a_Idx,
@@ -53,6 +56,7 @@ router.post('/', auth, async (req, res) => {
       p_Option,
       p_Desc,
       p_Soldout,
+      p_Status,
       createdAt,
     });
 
@@ -64,6 +68,43 @@ router.post('/', auth, async (req, res) => {
     res.status(400).send({
       success: false,
       errorMessage: '상품 등록 실패',
+    });
+  }
+});
+
+/** 상품조회 */
+router.get('/', auth, async (req, res) => {
+  try {
+    let { page, maxpost } = req.query;
+
+    /** token */
+    const { admin } = res.locals;
+    const a_Idx = admin.a_Idx;
+
+    /** page처리 */
+    page = Number(page);
+    maxpost = Number(maxpost);
+
+    let cnt = 0;
+    page == 1 ? (cnt = 0) : (cnt = page * maxpost - maxpost);
+    const list = await Product.find(
+      { a_Idx },
+      { _id: 0, p_No: 1, p_Category: 1, p_Name: 1, p_Soldout: 1 },
+    )
+      .sort()
+      .limit(maxpost)
+      .skip(cnt);
+
+    /** 전체 게시물 수 */
+    cnt = await Product.find({ a_Idx }).count();
+
+    res.status(200).json({
+      cnt,
+      list,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
     });
   }
 });

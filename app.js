@@ -9,6 +9,7 @@ const port = 3005;
 /** Router */
 const userRouter = require('./routes/user');
 const adminRouter = require('./routes/admin');
+const productRouter = require('./routes/product');
 
 /** DB */
 const connect = require('./schemas');
@@ -24,6 +25,11 @@ app.get('/', (req, res) => {
 
 app.use('/users', express.urlencoded({ extended: false }), userRouter);
 app.use('/admins', express.urlencoded({ extended: false }), adminRouter);
+app.use(
+  '/admin-products',
+  express.urlencoded({ extended: false }),
+  productRouter,
+);
 
 app.listen(port, () => console.log(`http://localhost:${port}`));
 

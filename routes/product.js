@@ -287,7 +287,6 @@ router.get('/list', auth, async (req, res) => {
 });
 
 /** 드롭 상품 선택 */
-/** 테스트 예정 */
 router.get('/:p_No/keywords', auth, async (req, res) => {
   try {
     const { p_No } = req.params;
@@ -371,6 +370,39 @@ router.post('/:p_No/keywords', auth, async (req, res) => {
     res.status(400).json({
       success: false,
       errorMessage: '키워드 등록 실패',
+    });
+  }
+});
+
+/** 키워드 삭제 */
+router.delete('/:p_No/keywords/:keyword', auth, async (req, res) => {
+  try {
+    const { p_No, keyword } = req.params;
+
+    /** token */
+    const { admin } = res.locals;
+    const a_Idx = admin.a_Idx;
+
+    const db = await Product.findOne({ p_No }, { _id: 0, a_Idx: 1 }).exec();
+    const dbIdx = db.a_Idx;
+
+    if (dbIdx === a_Idx) {
+      await Keyword.deleteOne({ p_No, keyword });
+      res.status(200).json({
+        success: true,
+        message: 'delete success',
+      });
+      return;
+    } else {
+      res.status(401).json({
+        success: false,
+        errorMessage: '권한 없음',
+      });
+      return;
+    }
+  } catch (error) {
+    res.status(400).json({
+      success: false,
     });
   }
 });

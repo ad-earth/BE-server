@@ -165,4 +165,41 @@ router.put('/:p_No', auth, async (req, res) => {
   }
 });
 
+/** 상품삭제 */
+router.delete('/', auth, async (req, res) => {
+  try {
+    const { p_No } = req.body;
+
+    /** token */
+    const { admin } = res.locals;
+    const a_Idx = admin.a_Idx;
+
+    let db = await Product.findOne(
+      { p_No: p_No[0] },
+      { _id: 0, a_Idx: 1 },
+    ).exec();
+
+    if (a_Idx == db.a_Idx) {
+      for (let i = 0; i < p_No.length; i++) {
+        await Product.deleteOne({ p_No: p_No[i] });
+      }
+      res.status(200).json({
+        success: true,
+        message: 'delete success',
+      });
+      return;
+    } else {
+      res.status(401).json({
+        success: false,
+        errorMessage: '권한 없음',
+      });
+      return;
+    }
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+    });
+  }
+});
+
 module.exports = router;

@@ -347,10 +347,14 @@ router.post('/:p_No/keywords', auth, async (req, res) => {
         .replace('T', ' ')
         .replace(/\..*/, '');
 
+      /** 키워드 광고 상태 */
+      const k_Status = 'off';
+
       await Keyword.create({
         k_No,
         p_No,
         keyword,
+        k_Status,
         createdAt,
       });
 
@@ -406,5 +410,116 @@ router.delete('/:p_No/keywords/:keyword', auth, async (req, res) => {
     });
   }
 });
+
+/** 예상 순위 */
+router.get(
+  '/:p_No/keywords/:keyword/level/:k_Level',
+  auth,
+  async (req, res) => {
+    try {
+      // 상품번호, 키워드, 예상 순위 param으로 받음
+      let { p_No, keyword, k_Level } = req.params;
+
+      let k_Status = 'on';
+      // db.keyword에서 광고중인 키워드있는지 확인
+      let findKeyword = await Keyword.find(
+        {
+          keyword,
+          k_Status,
+        },
+        { _id: 0, k_Level: 1, k_Cost: 1 },
+      ).exec();
+
+      let k_Cost = 0;
+      // 광고중인 키워드가 없다면 1위 90원 반환
+      if (findKeyword.length === 0) {
+        k_Cost = 90;
+        res.status(200).json({
+          k_Cost,
+        });
+        return;
+      }
+      // 광고중인 다른 키워드가 있다면 순위 가져옴
+      // 그 순위로 광고중인 키워드가 있나 확인
+      let level = await Keyword.findOne(
+        {
+          keyword,
+          k_Status,
+          k_Level: k_Level,
+        },
+        { _id: 0, k_Level: 1, k_Cost: 1 },
+      ).exec();
+
+      // 있다면 입찰가 +10 반환
+      if (level != null) {
+        k_Cost = level.k_Cost + 10;
+        res.status(200).json({
+          k_Cost,
+        });
+        return;
+      }
+
+      // level이 1이면 한 순위 낮은 광고 확인
+      if (k_Level == 1) {
+        level = await Keyword.findOne(
+          {
+            keyword,
+            k_Status,
+          },
+          { _id: 0, k_Level: 1, k_Cost: 1 },
+        )
+          .sort('k_Level')
+          .exec();
+        k_Cost = level.k_Cost + 10;
+        res.status(200).json({
+          k_Cost,
+        });
+        return;
+      }
+
+      // level이 4이면
+      if (k_Level == 4) {
+        level = await Keyword.findOne(
+          {
+            keyword,
+            k_Status,
+          },
+          { _id: 0, k_Level: 1, k_Cost: 1 },
+        )
+          .sort('k_Level')
+          .exec();
+        k_Cost = 90;
+        res.status(200).json({
+          k_Cost,
+        });
+        return;
+      }
+
+      // 없으면 한 순위 높은 광고 있나 확인(대신 원하는 순위가 1위일때는 2위 키워드)
+      k_Level = Number(k_Level) - 1;
+
+      level = await Keyword.findOne(
+        {
+          keyword,
+          k_Status,
+          k_Level: k_Level,
+        },
+        { _id: 0, k_Level: 1, k_Cost: 1 },
+      ).exec();
+
+      if (level != null) {
+        k_Cost = level.k_Cost - 10;
+        res.status(200).json({
+          k_Cost,
+        });
+        return;
+      }
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+      });
+    }
+  },
+);
 
 module.exports = router;

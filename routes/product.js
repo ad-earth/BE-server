@@ -526,114 +526,173 @@ router.get(
 router.put('/:p_No/keywords', auth, async (req, res) => {
   try {
     const { p_No } = req.params;
-    let { add } = req.body;
+    const { add } = req.body;
+    // console.log('add: ', add);
 
-    let result = 0;
     /** token */
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
+    // console.log('a_Idx: ', a_Idx);
 
-    const db = await Admin.findOne({ a_Idx }, { _id: 0, a_Charge: 1 }).exec();
+    let adminCharge = await Admin.findOne(
+      { a_Idx },
+      { _id: 0, a_Charge: 1 },
+    ).exec();
 
-    /** 충전금 부족 및 입찰금 부족 반환 처리 */
     for (let a = 0; a < add.length; a++) {
-      // 입찰금이 충전금 보다 가격이 낮거나 같으면 errorMessage 반환
-      if (db.a_Charge <= add[a].k_Cost) {
+      let levelCost = await Keyword.findOne(
+        {
+          p_No: { $ne: p_No },
+          keyword: add[a].keyword,
+          k_Level: add[a].k_Level,
+          k_Status: 'on',
+        },
+        { _id: 0, p_No: 1, k_Level: 1, k_Cost: 1, k_Status: 1, k_No: 1 },
+      ).exec();
+      // console.log('levelCost: ', levelCost);
+
+      if (adminCharge.a_Charge <= add[a].k_Cost && add[a].k_Status == 'on') {
+        /** 입찰금이 충전금보다 가격이 낮거나 같으면 errorMessage 반환 */
         res.status(400).json({
-          errorMessage: '충전금이 부족합니다',
+          errorMessage: '충전금이 부족합니다.',
         });
         return;
-      }
-
-      result = await Keyword.find(
-        { keyword: add[a].keyword, k_Status: 'on', k_Level: add[a].k_Level },
-        { _id: 0, k_Level: 1, k_Cost: 1, k_No: 1, p_No: 1 },
-      ).exec();
-      console.log('result1: ', result);
-
-      // 입찰금이 기존 입찰금보다 가격이 낮거나 같으면 errorMessage 반환
-      for (let b = 0; b < result.length; b++) {
-        if (
-          result[b].k_Cost >= add[a].k_Cost &&
-          result[b].p_No == add[a].p_No
-        ) {
-          res.status(400).json({
-            errorMessage: '순위에 맞는 입찰금이 아닙니다.',
-          });
-          return;
-        }
-      }
-    }
-
-    for (let i = 0; i < add.length; i++) {
-      // 해당 순위가 현재 비어있는 순위인지 확인
-      result = await Keyword.find(
-        {
-          keyword: add[i].keyword,
-          k_Status: 'on',
-          k_Level: add[i].k_Level,
-        },
-        { _id: 0, k_Level: 1, k_Cost: 1, k_No: 1 },
-      ).exec();
-      console.log('result2: ', result);
-
-      if (result.length === 0) {
-        // 비어있는 순위면 해당 순위에 그 입찰금으로 광고 등록 후 k_Status on으로 변경
+      } else if (
+        levelCost != null &&
+        levelCost.k_Cost >= add[a].k_Cost &&
+        add[a].k_Status == 'on'
+      ) {
+        let failKeyword = add[a].keyword;
+        let failCost = add[a].k_Cost;
+        /**입찰금이 기존 입찰금보다 가격이 낮거나 같으면 errorMessage 반환 */
+        res.status(400).json({
+          errorMessage: `키워드 ${failKeyword}의 입찰금 ${failCost}원은 순위에 맞는 입찰금이 아닙니다.`,
+        });
+        return;
+      } else if (add[a].k_Status == 'off') {
+        /** k_Status = "off"면 on > off로 수정*/
         await Keyword.updateOne(
-          { p_No, keyword: add[i].keyword },
-          {
-            $set: {
-              k_Level: add[i].k_Level,
-              k_Cost: add[i].k_Cost,
-              k_Status: 'on',
-            },
-          },
+          { p_No, keyword: add[a].keyword },
+          { $set: { k_Status: 'off' } },
         );
       } else {
-        let result3 = await Keyword.find(
-          {
-            p_No: { $ne: p_No },
-            keyword: add[i].keyword,
-            k_Status: 'on',
-          },
-          { _id: 0, k_Level: 1, k_Cost: 1, k_No: 1 },
-        ).exec();
-        console.log('result3: ', result3);
-        for (let j = 0; j < result3.length; j++) {
-          // 입찰금이 기존 입찰금보다 가격이 높으면 k_Level과 같거나 작은 순위는 +1해서 순위를 낮춤
-          if (result3[j].k_Level >= add[i].k_Level) {
-            let changeLevel = result3[j].k_Level + 1;
-            let changeStatus = 'on';
-            // 해당 키워드로 5위가 된 광고는 k_Status를 off로 변경
-            changeLevel === 5 ? (changeStatus = 'off') : (changeStatus = 'on');
-            await Keyword.updateOne(
-              { k_No: result3[j].k_No },
-              {
-                $set: {
-                  k_Level: changeLevel,
-                  k_Status: changeStatus,
-                },
+        /** 원하는 순위가 현재 비어있는 순위인지 확인 */
+        if (levelCost == null) {
+          /** 빈 순위이면 광고 등록 */
+          let emptyLevel = await Keyword.updateOne(
+            { p_No, keyword: add[a].keyword },
+            {
+              $set: {
+                k_Level: add[a].k_Level,
+                k_Cost: add[a].k_Cost,
+                k_Status: 'on',
               },
-            );
-          }
-        }
-        // 해당 순위와 입찰금으로 광고 등록하며 k_Status는 on으로 변경
-        await Keyword.updateOne(
-          { p_No, keyword: add[i].keyword },
-          {
-            $set: {
-              k_Level: add[i].k_Level,
-              k_Cost: add[i].k_Cost,
+            },
+          );
+          // console.log('emptyLevel: ', emptyLevel);
+        } else {
+          /** 입찰금이 기존 입찰금보다 높으며, 같은 순위이면 기존 순위를 +1 하여 순위 하락 */
+
+          let downLevel = levelCost.k_Level;
+
+          let sameLevel = await Keyword.find(
+            {
+              p_No: { $ne: p_No },
+              keyword: add[a].keyword,
+              k_Level: downLevel + 1,
               k_Status: 'on',
             },
-          },
-        );
+            { _id: 0, k_No: 1, k_Level: 1, k_Status: 1 },
+          ).exec();
+          // console.log('test down Level :', sameLevel);
+          if (sameLevel.length == 0) {
+            /** 순위를 하락했을 때 중복 순위가 없다면 */
+            if (downLevel == 4) {
+              let offStatus = 'off';
+              await Keyword.updateOne(
+                {
+                  k_No: levelCost.k_No,
+                },
+                {
+                  $set: {
+                    k_Level: downLevel + 1,
+                    k_Status: offStatus,
+                  },
+                },
+              );
+            } else {
+              await Keyword.updateOne(
+                { k_No: levelCost.k_No },
+                {
+                  $set: {
+                    k_Level: downLevel + 1,
+                  },
+                },
+              );
+            }
+          } else {
+            /** 순위를 하락했을 때 중복 순위가 있다면 */
+            let sameNo = [];
+
+            do {
+              sameLevel = await Keyword.find(
+                {
+                  p_No: { $ne: p_No },
+                  keyword: add[a].keyword,
+                  k_Level: downLevel,
+                  k_Status: 'on',
+                },
+                { _id: 0, k_No: 1, k_Level: 1, k_Status: 1 },
+              ).exec();
+              // console.log(sameLevel.length);
+              if (sameLevel.length != 0) {
+                /** 순위 하락시 중복 값 배열에 담기 */
+                sameNo.push(sameLevel[0]);
+                downLevel++;
+              }
+            } while (sameLevel != 0);
+
+            // console.log('sameNo: ', sameNo);
+
+            for (let b = 0; b < sameNo.length; b++) {
+              downLevel = sameNo[b].k_Level + 1;
+              let changeStatus = 'on';
+              /** 순위를 내려줘야하는 중복 값 중 순위가 5위면 k_Status = "off"로 수정*/
+              downLevel == 5 ? (changeStatus = 'off') : (changeStatus = 'on');
+              await Keyword.updateOne(
+                {
+                  k_No: sameNo[b].k_No,
+                },
+                {
+                  $set: {
+                    k_Level: downLevel,
+                    k_Status: changeStatus,
+                  },
+                },
+              );
+            }
+          }
+          await Keyword.updateOne(
+            {
+              p_No,
+              keyword: add[a].keyword,
+            },
+            {
+              $set: {
+                k_Level: add[a].k_Level,
+                k_Cost: add[a].k_Cost,
+                k_Status: 'on',
+              },
+            },
+          );
+        }
       }
     }
     res.status(201).json({
       success: true,
     });
     return;
+    /** catch */
   } catch (error) {
     res.status(400).json({
       success: false,

@@ -527,12 +527,10 @@ router.put('/:p_No/keywords', auth, async (req, res) => {
   try {
     const { p_No } = req.params;
     const { add } = req.body;
-    // console.log('add: ', add);
 
     /** token */
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
-    // console.log('a_Idx: ', a_Idx);
 
     let adminCharge = await Admin.findOne(
       { a_Idx },
@@ -549,7 +547,6 @@ router.put('/:p_No/keywords', auth, async (req, res) => {
         },
         { _id: 0, p_No: 1, k_Level: 1, k_Cost: 1, k_Status: 1, k_No: 1 },
       ).exec();
-      // console.log('levelCost: ', levelCost);
 
       if (adminCharge.a_Charge <= add[a].k_Cost && add[a].k_Status == 'on') {
         /** 입찰금이 충전금보다 가격이 낮거나 같으면 errorMessage 반환 */
@@ -589,7 +586,6 @@ router.put('/:p_No/keywords', auth, async (req, res) => {
               },
             },
           );
-          // console.log('emptyLevel: ', emptyLevel);
         } else {
           /** 입찰금이 기존 입찰금보다 높으며, 같은 순위이면 기존 순위를 +1 하여 순위 하락 */
 
@@ -604,7 +600,7 @@ router.put('/:p_No/keywords', auth, async (req, res) => {
             },
             { _id: 0, k_No: 1, k_Level: 1, k_Status: 1 },
           ).exec();
-          // console.log('test down Level :', sameLevel);
+
           if (sameLevel.length == 0) {
             /** 순위를 하락했을 때 중복 순위가 없다면 */
             if (downLevel == 4) {
@@ -644,15 +640,13 @@ router.put('/:p_No/keywords', auth, async (req, res) => {
                 },
                 { _id: 0, k_No: 1, k_Level: 1, k_Status: 1 },
               ).exec();
-              // console.log(sameLevel.length);
+
               if (sameLevel.length != 0) {
                 /** 순위 하락시 중복 값 배열에 담기 */
                 sameNo.push(sameLevel[0]);
                 downLevel++;
               }
             } while (sameLevel != 0);
-
-            // console.log('sameNo: ', sameNo);
 
             for (let b = 0; b < sameNo.length; b++) {
               downLevel = sameNo[b].k_Level + 1;
@@ -692,7 +686,6 @@ router.put('/:p_No/keywords', auth, async (req, res) => {
       success: true,
     });
     return;
-    /** catch */
   } catch (error) {
     res.status(400).json({
       success: false,

@@ -41,6 +41,9 @@ router.post('/', auth, async (req, res) => {
     /** soldout */
     let p_Soldout = false;
 
+    /** new */
+    let p_New = true;
+
     /** 상품 노출 */
     let p_Status = true;
 
@@ -57,6 +60,7 @@ router.post('/', auth, async (req, res) => {
       p_Option,
       p_Desc,
       p_Soldout,
+      p_New,
       p_Status,
       createdAt,
     });

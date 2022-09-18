@@ -12,6 +12,7 @@ const adminRouter = require('./routes/admin');
 const productRouter = require('./routes/product');
 const keywordRouter = require('./routes/keyword');
 const mainRouter = require('./routes/main');
+const wishRouter = require('./routes/wish');
 
 /** DB */
 const connect = require('./schemas');
@@ -38,6 +39,7 @@ app.use(
   keywordRouter,
 );
 app.use('/main', express.urlencoded({ extended: false }), mainRouter);
+app.use('/wish-list', express.urlencoded({ extended: false }), wishRouter);
 
 app.listen(port, () => console.log(`http://localhost:${port}`));
 

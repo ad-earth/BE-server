@@ -5,6 +5,7 @@ const Delivery = require('../schemas/deliveries');
 const Product = require('../schemas/products');
 const Order = require('../schemas/orders');
 const auth = require('../middlewares/user-middleware');
+const { originAgentCluster } = require('helmet');
 
 /** 결제페이지 첫화면 */
 router.get('/', auth, async (req, res) => {
@@ -134,6 +135,37 @@ router.post('/complete', auth, async (req, res) => {
     res.status(400).json({
       success: false,
       errorMessage: '결제 실패',
+    });
+  }
+});
+
+/** 주문완료 */
+router.get('/complete', auth, async (req, res) => {
+  try {
+    const { user } = res.locals;
+    const u_Idx = user.u_Idx;
+
+    /** 제일 최근에 주문한 주문 번호 */
+    let orders = await Order.findOne(
+      { u_Idx },
+      { _id: 0, o_No: 1, o_Price: 1, address: 1 },
+    )
+      .sort('-o_No')
+      .exec();
+
+    let result = {
+      o_No: orders.o_No,
+      o_Price: orders.o_Price,
+      d_Name: orders.address.d_Name,
+      d_Phone: orders.address.d_Phone,
+      d_Address1: orders.address.d_Address1,
+      d_Address2: orders.address.d_Address2,
+    };
+
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({
+      success: false,
     });
   }
 });

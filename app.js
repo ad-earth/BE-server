@@ -16,6 +16,7 @@ const wishRouter = require('./routes/wish');
 const detailRouter = require('./routes/detail');
 const cartRouter = require('./routes/cart');
 const paymentRouter = require('./routes/payment');
+const shippingRouter = require('./routes/shipping');
 
 /** DB */
 const connect = require('./schemas');
@@ -46,6 +47,11 @@ app.use('/wish-list', express.urlencoded({ extended: false }), wishRouter);
 app.use('/products', express.urlencoded({ extended: false }), detailRouter);
 app.use('/carts', express.urlencoded({ extended: false }), cartRouter);
 app.use('/payment', express.urlencoded({ extended: false }), paymentRouter);
+app.use(
+  '/shipping-list',
+  express.urlencoded({ extended: false }),
+  shippingRouter,
+);
 
 app.listen(port, () => console.log(`http://localhost:${port}`));
 

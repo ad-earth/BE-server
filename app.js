@@ -13,6 +13,8 @@ const productRouter = require('./routes/product');
 const keywordRouter = require('./routes/keyword');
 const mainRouter = require('./routes/main');
 const wishRouter = require('./routes/wish');
+const detailRouter = require('./routes/detail');
+const cartRouter = require('./routes/cart');
 
 /** DB */
 const connect = require('./schemas');
@@ -40,6 +42,8 @@ app.use(
 );
 app.use('/main', express.urlencoded({ extended: false }), mainRouter);
 app.use('/wish-list', express.urlencoded({ extended: false }), wishRouter);
+app.use('/products', express.urlencoded({ extended: false }), detailRouter);
+app.use('/carts', express.urlencoded({ extended: false }), cartRouter);
 
 app.listen(port, () => console.log(`http://localhost:${port}`));
 

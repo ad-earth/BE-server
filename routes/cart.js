@@ -5,11 +5,17 @@ const Cart = require('../schemas/carts');
 const User = require('../schemas/users');
 const Wish = require('../schemas/wishes');
 const Keyword = require('../schemas/keywords');
+const auth = require('../middlewares/user-middleware');
 
 /** 장바구니 저장 */
-router.post('/', async (req, res) => {
+router.post('/', auth, async (req, res) => {
   try {
-    const { u_Idx, cartList } = req.body;
+    const { cartList } = req.body;
+
+    /** token */
+    const { user } = res.locals;
+    const u_Idx = user.u_Idx;
+
     /** u_Idx 기준으로 cart에 기존 db 있는지 확인 */
     let db = await Cart.find({ u_Idx }).exec();
 
@@ -31,5 +37,23 @@ router.post('/', async (req, res) => {
 });
 
 /** 장바구니 조회 */
+router.get('/', auth, async (req, res) => {
+  try {
+    /** token */
+    const { user } = res.locals;
+    const u_Idx = user.u_Idx;
+
+    let cartList = await Cart.find(
+      { u_Idx },
+      { _id: 0, __v: 0, u_Idx: 0 },
+    ).exec();
+
+    res.status(200).json(cartList[0]);
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+    });
+  }
+});
 
 module.exports = router;

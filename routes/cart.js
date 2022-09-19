@@ -1,10 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Product = require('../schemas/products');
 const Cart = require('../schemas/carts');
-const User = require('../schemas/users');
-const Wish = require('../schemas/wishes');
-const Keyword = require('../schemas/keywords');
 const auth = require('../middlewares/user-middleware');
 
 /** 장바구니 저장 */

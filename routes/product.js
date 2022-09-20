@@ -4,7 +4,6 @@ const Admin = require('../schemas/admins');
 const Product = require('../schemas/products');
 const Keyword = require('../schemas/keywords');
 const auth = require('../middlewares/admin-middleware');
-const fnc = require('../functions/noCreate');
 
 /** 상품등록 */
 router.post('/', auth, async (req, res) => {

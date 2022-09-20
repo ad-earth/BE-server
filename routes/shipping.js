@@ -1,9 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../schemas/users');
 const Delivery = require('../schemas/deliveries');
-const Product = require('../schemas/products');
-const Order = require('../schemas/orders');
 const auth = require('../middlewares/user-middleware');
 
 /** 배송지 정보 수정 */

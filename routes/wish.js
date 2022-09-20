@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middlewares/user-middleware');
-const User = require('../schemas/users');
 const Wish = require('../schemas/wishes');
 const Product = require('../schemas/products');
 

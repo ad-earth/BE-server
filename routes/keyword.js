@@ -1,7 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const Admin = require('../schemas/admins');
-const Product = require('../schemas/products');
 const Keyword = require('../schemas/keywords');
 const auth = require('../middlewares/admin-middleware');
 

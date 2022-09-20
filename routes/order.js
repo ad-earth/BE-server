@@ -105,4 +105,49 @@ router.get('/:o_No', auth, async (req, res) => {
     });
   }
 });
+
+/** 주문취소 */
+router.put('/:o_No/cancel/:p_No', auth, async (req, res) => {
+  try {
+    let { o_No, p_No } = req.params;
+    p_No = parseInt(p_No);
+    /** token */
+    const { user } = res.locals;
+    const u_Idx = user.u_Idx;
+
+    /** o_No의 p_No의 o_Status 찾기 */
+    let db = await Order.findOne({ o_No }).exec();
+    let cancelPrice = 0;
+    /** 주문완료일시 취소완료 변경 */
+    /** 취소 요청처리해야함 */
+    /** 배송완료면 취소완료 변경 안됨 */
+    for (let x in db.products) {
+      if (
+        db.products[x].o_Status === '주문완료' &&
+        db.products[x].p_No === p_No
+      ) {
+        cancelPrice = db.products[x].p_Price;
+        db.products[x].o_Status = '취소완료';
+      }
+    }
+
+    let price = db.o_Price - cancelPrice;
+
+    await Order.updateOne(
+      { o_No },
+      {
+        $set: {
+          o_Price: price,
+          products: db.products,
+        },
+      },
+    );
+    res.status(201).json({
+      success: true,
+    });
+    return;
+  } catch (error) {
+    console.log(error);
+  }
+});
 module.exports = router;

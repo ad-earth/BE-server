@@ -17,6 +17,7 @@ const detailRouter = require('./routes/detail');
 const cartRouter = require('./routes/cart');
 const paymentRouter = require('./routes/payment');
 const shippingRouter = require('./routes/shipping');
+const reviewRouter = require('./routes/review');
 
 /** DB */
 const connect = require('./schemas');
@@ -52,6 +53,7 @@ app.use(
   express.urlencoded({ extended: false }),
   shippingRouter,
 );
+app.use('/reviews', express.urlencoded({ extended: false }), reviewRouter);
 
 app.listen(port, () => console.log(`http://localhost:${port}`));
 

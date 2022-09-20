@@ -63,4 +63,46 @@ router.get('/', auth, async (req, res) => {
     });
   }
 });
+
+/** 주문조회 상세정보 */
+router.get('/:o_No', auth, async (req, res) => {
+  try {
+    const { o_No } = req.params;
+
+    /** token */
+    const { user } = res.locals;
+    const u_Idx = user.u_Idx;
+
+    let db = await Order.findOne(
+      { o_No, u_Idx },
+      { _id: 0, o_BankBook: 0, o_Receipt: 0, o_ReceiptNo: 0, __v: 0 },
+    ).exec();
+
+    delete db.address.d_No;
+
+    for (let x in db.products) {
+      delete db.products[x].k_No;
+    }
+
+    let date = db.createdAt.substring(0, 10);
+
+    let result = {
+      o_No: db.o_No,
+      o_Date: date,
+      o_Price: db.o_Price,
+      products: db.products,
+      userInfo: {
+        u_Name: user.u_Name,
+        u_Phone: user.u_Phone,
+      },
+      address: db.address,
+    };
+
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+    });
+  }
+});
 module.exports = router;

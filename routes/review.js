@@ -45,7 +45,7 @@ router.post('/:p_No', auth, async (req, res) => {
     let reviewsCnt = await Product.findOne({ p_No }, { p_Review: 1 }).exec();
 
     let prodReview = 0;
-    if (reviewsCnt.p_Review == null) {
+    if (reviewsCnt.p_Review < 1) {
       prodReview = 1;
     } else {
       prodReview = reviewsCnt.p_Review + 1;

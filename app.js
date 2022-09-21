@@ -18,6 +18,8 @@ const cartRouter = require('./routes/cart');
 const paymentRouter = require('./routes/payment');
 const shippingRouter = require('./routes/shipping');
 const reviewRouter = require('./routes/review');
+const orderRouter = require('./routes/order');
+const cancelRouter = require('./routes/cancel');
 
 /** DB */
 const connect = require('./schemas');
@@ -54,6 +56,8 @@ app.use(
   shippingRouter,
 );
 app.use('/reviews', express.urlencoded({ extended: false }), reviewRouter);
+app.use('/orders', express.urlencoded({ extended: false }), orderRouter);
+app.use('/cancel-list', express.urlencoded({ extended: false }), cancelRouter);
 
 app.listen(port, () => console.log(`http://localhost:${port}`));
 

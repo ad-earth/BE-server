@@ -41,4 +41,64 @@ router.post('/:p_No', auth, async (req, res) => {
   }
 });
 
+/** 마이페이지 위시리스트 조회 */
+router.get('/', auth, async (req, res) => {
+  try {
+    let { page, maxpost } = req.query;
+
+    /** maxpost 수만큼 page 처리 */
+    Number(page, maxpost);
+    let skipCnt = 0;
+    page == 1 ? (skipCnt = 0) : (skipCnt = page * maxpost - maxpost);
+
+    /** token */
+    const { user } = res.locals;
+    const u_Idx = user.u_Idx;
+
+    let cnt = await Wish.find({ u_Idx }).count();
+    let db = await Wish.find({ u_Idx }).limit(maxpost).skip(skipCnt);
+
+    let wishList = [];
+    for (let x in db) {
+      // noList.push(db[x].p_No);
+      let result = await Product.findOne(
+        { p_No: db[x].p_No, p_Status: true },
+        {
+          _id: 0,
+          a_Idx: 0,
+          p_Status: 0,
+          p_Price: 0,
+          p_Option: 0,
+          p_Dest: 0,
+          createdAt: 0,
+          __v: 0,
+        },
+      ).exec();
+      wishList.push(result);
+    }
+
+    /** best 기준 like가 1개라도 있으면 true 추후 수정 예정 */
+    for (let y in wishList) {
+      if (wishList[y].p_Like > 0) {
+        wishList[y].p_Best = true;
+        wishList[y].p_New = false;
+      } else {
+        wishList[y].p_Best = false;
+        wishList[y].p_New = true;
+      }
+      wishList[y].p_Thumbnail = wishList[y].p_Thumbnail.slice(0, 1);
+    }
+
+    res.status(200).json({
+      cnt,
+      wishList,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({
+      success: false,
+    });
+  }
+});
+
 module.exports = router;

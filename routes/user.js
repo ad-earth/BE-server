@@ -282,41 +282,32 @@ router.post('/login', async (req, res) => {
 });
 
 /** 정보 수정 */
-router.put('/:u_Idx', authMiddleware, async (req, res) => {
+router.put('/', authMiddleware, async (req, res) => {
   try {
     const { u_Name, u_Address1, u_Address2, u_Gender, u_Phone, u_Img } =
       req.body;
-    const { u_Idx } = req.params;
+
+    /** token */
     const { user } = res.locals;
+    const u_Idx = user.u_Idx;
 
-    const db = await User.findOne({ u_Idx }).exec();
-    const tokenUser = user.u_Idx;
-    const dbUser = db.u_Idx;
-
-    if (tokenUser == dbUser) {
-      await User.updateOne(
-        { u_Idx },
-        {
-          $set: {
-            u_Name,
-            u_Address1,
-            u_Address2,
-            u_Gender,
-            u_Phone,
-            u_Img,
-          },
+    await User.updateOne(
+      { u_Idx },
+      {
+        $set: {
+          u_Name,
+          u_Address1,
+          u_Address2,
+          u_Gender,
+          u_Phone,
+          u_Img,
         },
-      );
-      res.status(201).send({
-        success: true,
-      });
-      return;
-    } else {
-      res.status(401).send({
-        errorMessage: '권한 없음',
-      });
-      return;
-    }
+      },
+    );
+    res.status(201).send({
+      success: true,
+    });
+    return;
   } catch (error) {
     res.status(400).send({
       errorMessage: '수정 중 오류 발생',
@@ -325,26 +316,17 @@ router.put('/:u_Idx', authMiddleware, async (req, res) => {
 });
 
 /** 정보 삭제 */
-router.delete('/:u_Idx', authMiddleware, async (req, res) => {
+router.delete('/', authMiddleware, async (req, res) => {
   try {
-    const { u_Idx } = req.params;
+    /** token */
     const { user } = res.locals;
-    const db = await User.findOne({ u_Idx }).exec();
-    const tokenUser = user.u_Idx;
-    const dbUser = db.u_Idx;
+    const u_Idx = user.u_Idx;
 
-    if (tokenUser === dbUser) {
-      await User.deleteOne({ u_Idx });
-      res.status(200).send({
-        success: true,
-      });
-      return;
-    } else {
-      res.status(401).send({
-        errorMessage: '권한 없음',
-      });
-      return;
-    }
+    await User.deleteOne({ u_Idx });
+    res.status(200).send({
+      success: true,
+    });
+    return;
   } catch (error) {
     res.status(400).send({
       errorMessage: '삭제 중 오류 발생',

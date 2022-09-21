@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../schemas/orders');
+const CancelProd = require('../schemas/cancelProd');
 const auth = require('../middlewares/user-middleware');
 
 /** 주문조회 */
@@ -59,7 +60,7 @@ router.get('/', auth, async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({
-      success: false,
+      success: 'false',
     });
   }
 });
@@ -107,47 +108,97 @@ router.get('/:o_No', auth, async (req, res) => {
 });
 
 /** 주문취소 */
-router.put('/:o_No/cancel/:p_No', auth, async (req, res) => {
+router.put('/:o_No/cancel', auth, async (req, res) => {
   try {
-    let { o_No, p_No } = req.params;
-    p_No = parseInt(p_No);
+    let { o_No } = req.params;
+    let { p_No } = req.body;
+    Number(p_No);
+
     /** token */
     const { user } = res.locals;
     const u_Idx = user.u_Idx;
 
     /** o_No의 p_No의 o_Status 찾기 */
-    let db = await Order.findOne({ o_No }).exec();
-    let cancelPrice = 0;
+    let db = await Order.findOne({ u_Idx, o_No }).exec();
+
     /** 주문완료일시 취소완료 변경 */
     /** 취소 요청처리해야함 */
     /** 배송완료면 취소완료 변경 안됨 */
-    for (let x in db.products) {
-      if (
-        db.products[x].o_Status === '주문완료' &&
-        db.products[x].p_No === p_No
-      ) {
-        cancelPrice = db.products[x].p_Price;
-        db.products[x].o_Status = '취소완료';
+    let result = {};
+    let arrProd = [];
+    if (p_No.length > 1) {
+      for (let x = 0; x < db.products.length; x++) {
+        for (let z in p_No) {
+          if (db.products[x].p_No === p_No[z]) {
+            db.products[x].o_Status = '취소완료';
+            arrProd.push(db.products[x]);
+          }
+        }
+      }
+      result = {
+        o_No: db.o_No,
+        createdAt: db.createdAt,
+        u_Idx: db.u_Idx,
+        o_Price: db.o_Price,
+        products: arrProd,
+      };
+    } else {
+      for (let y in db.products) {
+        if (db.products[y].p_No === p_No[0]) {
+          db.products[y].o_Status = '취소완료';
+          result = {
+            o_No: db.o_No,
+            createdAt: db.createdAt,
+            u_Idx: db.u_Idx,
+            o_Price: db.o_Price,
+            products: db.products[y],
+          };
+        }
       }
     }
 
-    let price = db.o_Price - cancelPrice;
+    let cancelDb = await CancelProd.findOne({ u_Idx, o_No }).exec();
+    if (cancelDb == null) {
+      await CancelProd.create({
+        o_No: result.o_No,
+        createdAt: result.createdAt,
+        u_Idx: result.u_Idx,
+        o_Price: result.o_Price,
+        products: result.products,
+      });
+    } else {
+      for (let a in result.products) {
+        cancelDb.products.push(result.products[a]);
+      }
+      await CancelProd.updateOne(
+        { u_Idx, o_No },
+        {
+          $set: {
+            products: cancelDb.products,
+          },
+        },
+      );
+    }
 
     await Order.updateOne(
-      { o_No },
+      { u_Idx, o_No },
       {
         $set: {
-          o_Price: price,
           products: db.products,
         },
       },
     );
+
     res.status(201).json({
       success: true,
     });
     return;
   } catch (error) {
     console.log(error);
+    res.status(400).json({
+      success: false,
+    });
   }
 });
+
 module.exports = router;

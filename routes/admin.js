@@ -90,7 +90,6 @@ router.post('/register', async (req, res) => {
 
     res.status(201).send({
       success: true,
-      message: 'post success',
     });
   } catch (error) {
     res.status(400).send({
@@ -208,8 +207,10 @@ router.put('/reset-password', async (req, res) => {
       return;
     }
 
+    /** 비밀번호 hash 처리 */
     const salt = await bcrypt.genSalt();
     const hashPw = await bcrypt.hash(a_Pw, salt);
+
     await Admin.updateOne({ a_Idx }, { $set: { a_Pw: hashPw } });
     res.status(201).send({
       success: true,
@@ -247,23 +248,17 @@ router.post('/login', async (req, res) => {
       });
       return;
     }
-    let a_Idx = admin.a_Idx;
     let a_Brand = admin.a_Brand;
-    let a_Number = admin.a_Number;
-    let a_Phone = admin.a_Phone;
 
     /** 비밀번호 매치 검사 */
     const authenticate = await bcrypt.compare(a_Pw, admin.a_Pw);
 
     if (authenticate === true) {
+      /** 비밀번호 일치하면 토큰 생성 */
       const token = jwt.sign({ a_Idx: admin.a_Idx }, jwtKey);
 
       res.status(200).send({
-        a_Idx,
-        a_Id,
         a_Brand,
-        a_Number,
-        a_Phone,
         token,
       });
       return;
@@ -281,27 +276,21 @@ router.post('/login', async (req, res) => {
   }
 });
 
-/** 회원 탈퇴 */
-router.delete('/:a_Idx', auth, async (req, res) => {
+/** 판매자 회원 탈퇴 */
+router.delete('/', auth, async (req, res) => {
   try {
-    const { a_Idx } = req.params;
+    /** token */
     const { admin } = res.locals;
-    const db = await Admin.findOne({ a_Idx }).exec();
-    const tokenAdmin = admin.a_Idx;
-    const dbAdmin = db.a_Idx;
+    const a_Idx = admin.a_Idx;
 
-    if (tokenAdmin === dbAdmin) {
-      await Admin.deleteOne({ a_Idx });
-      res.status(200).send({
-        success: true,
-      });
-      return;
-    } else {
-      res.status(401).send({
-        errorMessage: '권한 없음',
-      });
-      return;
-    }
+    /** 배송 관리에 신규주문 상품 있으면 false */
+    /** 등록한 상품도 같이 삭제 */
+
+    await Admin.deleteOne({ a_Idx });
+    res.status(200).send({
+      success: true,
+    });
+    return;
   } catch (error) {
     res.status(400).send({
       errorMessage: '삭제 중 오류 발생',

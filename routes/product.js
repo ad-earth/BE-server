@@ -64,11 +64,10 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-/** 상품조회 */
+/** 전체 및 카테고리별 상품 조회 */
 router.get('/', auth, async (req, res) => {
   try {
-    let { page, maxpost } = req.query;
-
+    let { page, maxpost, p_Category } = req.query;
     /** token */
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
@@ -79,16 +78,29 @@ router.get('/', auth, async (req, res) => {
 
     let cnt = 0;
     page == 1 ? (cnt = 0) : (cnt = page * maxpost - maxpost);
-    const list = await Product.find(
-      { a_Idx },
-      { _id: 0, p_No: 1, p_Category: 1, p_Name: 1, p_Soldout: 1 },
-    )
+
+    let findData = {};
+    if (p_Category.length != 0) {
+      /** 카테고리별 상품 */
+      findData = { a_Idx, p_Category };
+    } else {
+      /** 전체 상품 */
+      findData = { a_Idx };
+    }
+
+    let list = await Product.find(findData, {
+      _id: 0,
+      p_No: 1,
+      p_Category: 1,
+      p_Name: 1,
+      p_Status: 1,
+    })
       .sort()
       .limit(maxpost)
       .skip(cnt);
 
-    /** 전체 게시물 수 */
-    cnt = await Product.find({ a_Idx }).count();
+    /** 총 상품 수 */
+    cnt = await Product.find(findData).count();
 
     res.status(200).json({
       cnt,

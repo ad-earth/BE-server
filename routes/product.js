@@ -4,6 +4,7 @@ const Admin = require('../schemas/admins');
 const Product = require('../schemas/products');
 const Keyword = require('../schemas/keywords');
 const auth = require('../middlewares/admin-middleware');
+const { bool } = require('joi');
 
 /** 상품등록 */
 router.post('/', auth, async (req, res) => {
@@ -64,7 +65,7 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-/** 전체 및 카테고리별 상품 조회 */
+/** 전체 및 카테고리 상품 조회 */
 router.get('/', auth, async (req, res) => {
   try {
     let { page, maxpost, p_Category } = req.query;
@@ -113,9 +114,55 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+/** 상품 노출 여부 */
+router.put('/status/:p_No', auth, async (req, res) => {
+  try {
+    const { p_No } = req.params;
+
+    /** token */
+    const { admin } = res.locals;
+    const a_Idx = admin.a_Idx;
+
+    let db = await Product.findOne(
+      { p_No },
+      { _id: 0, a_Idx: 1, p_Status: 1 },
+    ).exec();
+
+    let status = bool;
+
+    if (a_Idx == db.a_Idx) {
+      if (db.p_Status == true) {
+        status = false;
+      } else {
+        status = true;
+      }
+      await Product.updateOne(
+        { p_No },
+        {
+          $set: {
+            p_Status: status,
+          },
+        },
+      );
+      return res.status(201).json({
+        success: true,
+      });
+    } else {
+      return res.status(401).json({
+        errorMessage: '권한 없음',
+      });
+    }
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+    });
+  }
+});
+
 /** 상품수정 */
 router.put('/:p_No', auth, async (req, res) => {
   try {
+    const { p_No } = req.params;
     const {
       p_Category,
       p_Thumbnail,
@@ -125,8 +172,8 @@ router.put('/:p_No', auth, async (req, res) => {
       p_Discount,
       p_Option,
       p_Desc,
+      p_Content,
     } = req.body;
-    const { p_No } = req.params;
 
     /** token */
     const { admin } = res.locals;
@@ -148,22 +195,20 @@ router.put('/:p_No', auth, async (req, res) => {
             p_Discount,
             p_Option,
             p_Desc,
+            p_Content,
           },
         },
       );
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
       });
-      return;
     } else {
-      res.status(401).json({
-        success: false,
+      return res.status(401).json({
         errorMessage: '권한 없음',
       });
-      return;
     }
   } catch (error) {
-    res.status(400).json({
+    return res.status(400).json({
       success: false,
     });
   }
@@ -192,62 +237,6 @@ router.delete('/', auth, async (req, res) => {
         message: 'delete success',
       });
       return;
-    } else {
-      res.status(401).json({
-        success: false,
-        errorMessage: '권한 없음',
-      });
-      return;
-    }
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-    });
-  }
-});
-
-/** 상품 노출 여부 */
-router.put('/status/:p_No', auth, async (req, res) => {
-  try {
-    const { p_No } = req.params;
-
-    /** token */
-    const { admin } = res.locals;
-    const a_Idx = admin.a_Idx;
-
-    let db = await Product.findOne(
-      { p_No },
-      { _id: 0, a_Idx: 1, p_Status: 1 },
-    ).exec();
-
-    if (a_Idx == db.a_Idx) {
-      if (db.p_Status == true) {
-        await Product.updateOne(
-          { p_No },
-          {
-            $set: {
-              p_Status: false,
-            },
-          },
-        );
-        res.status(201).json({
-          success: true,
-        });
-        return;
-      } else {
-        await Product.updateOne(
-          { p_No },
-          {
-            $set: {
-              p_Status: true,
-            },
-          },
-        );
-        res.status(201).json({
-          success: true,
-        });
-        return;
-      }
     } else {
       res.status(401).json({
         success: false,

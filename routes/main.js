@@ -238,7 +238,6 @@ router.get('/search', async (req, res) => {
       .limit(maxpost)
       .skip(skipCnt)
       .exec();
-    console.log('offKeyword: ', offKeyword);
 
     for (let y in offKeyword) {
       let arrProd2 = await Product.find(
@@ -271,7 +270,7 @@ router.get('/search', async (req, res) => {
 
     /** thumbnail 가공 */
     for (let a in adProducts) {
-      adProducts[a].p_Thumbnail = adProducts[a].p_Thumbnail.slice(0, 1);
+      adProducts[a].p_Thumbnail = adProducts[a].p_Thumbnail.slice(0, 2);
     }
     for (let b in products) {
       products[b].p_Thumbnail = products[b].p_Thumbnail.slice(0, 1);

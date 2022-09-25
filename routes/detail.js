@@ -4,6 +4,7 @@ const Product = require('../schemas/products');
 const Wish = require('../schemas/wishes');
 const Keyword = require('../schemas/keywords');
 const User = require('../schemas/users');
+const Admin = require('../schemas/admins');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 
@@ -20,6 +21,22 @@ router.get('/:p_No', async (req, res) => {
     // db.expense 현재 키워드, 키워드번호, 입찰금 생성 및 charge 금액 차감
     // keyword db의 현재 키워드 클릭수 +1
     // 키워드 번호
+    let keywordData = await Keyword.findOne({ p_No, keyword }).exec();
+    await Keyword.updateOne(
+      { p_No, keyword },
+      { $set: { k_Click: keywordData.k_Click + 1 } },
+    );
+
+    k_No = keywordData.k_No;
+
+    let adminIdx = await Product.findOne({ p_No }, { _id: 0, a_Idx: 1 }).exec();
+    let adminData = await Admin.findOne({ a_Idx: adminIdx.a_Idx });
+    await Admin.updateOne(
+      { a_Idx: adminData.a_Idx },
+      {
+        $set: { a_Charge: adminData.a_Charge - keywordData.k_Cost },
+      },
+    );
   }
   try {
     let product = await Product.findOne(

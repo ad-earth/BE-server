@@ -27,7 +27,7 @@ router.post('/', auth, async (req, res) => {
 
     /** 판매자 번호 확인 및 생성 (보류) */
     const recentNo = await Product.find().sort('-p_No').limit(1);
-    let p_No = 1; // 상품당 옵션 부가번호
+    let p_No = 1001; // 상품당 옵션 부가번호
     if (recentNo.length !== 0) {
       p_No = recentNo[0]['p_No'] + 1;
     }

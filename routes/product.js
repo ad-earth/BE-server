@@ -232,17 +232,13 @@ router.delete('/', auth, async (req, res) => {
       for (let i = 0; i < p_No.length; i++) {
         await Product.deleteOne({ p_No: p_No[i] });
       }
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
-        message: 'delete success',
       });
-      return;
     } else {
-      res.status(401).json({
-        success: false,
+      return res.status(401).json({
         errorMessage: '권한 없음',
       });
-      return;
     }
   } catch (error) {
     res.status(400).json({

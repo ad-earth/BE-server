@@ -17,6 +17,7 @@ router.post('/', auth, async (req, res) => {
       p_Discount,
       p_Option,
       p_Desc,
+      p_Content,
     } = req.body;
 
     /** token */
@@ -49,17 +50,16 @@ router.post('/', auth, async (req, res) => {
       p_Discount,
       p_Option,
       p_Desc,
+      p_Content,
       createdAt,
     });
 
     res.status(201).json({
       success: true,
-      message: 'post success',
     });
   } catch (error) {
     res.status(400).json({
       success: false,
-      errorMessage: '상품 등록 실패',
     });
   }
 });
@@ -256,6 +256,7 @@ router.get('/list', auth, async (req, res) => {
     /** token */
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
+
     const productList = await Product.find(
       { a_Idx },
       { _id: 0, p_No: 1, p_Name: 1 },

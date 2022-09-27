@@ -5,6 +5,7 @@ const Delivery = require('../schemas/deliveries');
 const Product = require('../schemas/products');
 const Order = require('../schemas/orders');
 const auth = require('../middlewares/user-middleware');
+const AdminOrder = require('../schemas/adminOrders');
 
 /** 결제페이지 첫화면 */
 router.get('/', auth, async (req, res) => {
@@ -96,20 +97,18 @@ router.post('/complete', auth, async (req, res) => {
     /** products[i].o_Status = "주문완료" */
     for (let x in products) {
       products[x].o_Status = '주문완료';
+      products[x].r_Status = false;
     }
 
     /** 주문자 번호 확인 및 생성 (보류) */
     const recentNo = await Order.find().sort('-o_No').limit(1);
-    let o_No = 1;
+    let o_No = 10001;
     if (recentNo.length !== 0) {
       o_No = recentNo[0]['o_No'] + 1;
     }
 
     /** 날짜 생성 */
-    const createdAt = new Date(+new Date() + 3240 * 10000)
-      .toISOString()
-      .replace('T', ' ')
-      .replace(/\..*/, '');
+    const createdAt = new Date(+new Date() + 3240 * 10000).toISOString();
 
     await Order.create({
       o_No,
@@ -122,15 +121,30 @@ router.post('/complete', auth, async (req, res) => {
       o_ReceiptNo,
       createdAt,
     });
+
+    /** 신규 주문 admin에 보내야함 */
+    for (let j in products) {
+      await AdminOrder.create({
+        o_No: o_No,
+        p_No: products[j].p_No,
+        u_Idx: u_Idx,
+        u_Id: user.u_Id,
+        products: products[j],
+        address: address,
+        o_Date: createdAt,
+        o_Status: '신규주문',
+      });
+    }
+
+    /** db.sales 구현해야함 */
+    /** db.expense 구현해야함 */
+
     res.status(201).json({
       success: true,
       message: 'post success',
     });
-
-    /** db.sales 구현해야함 */
-    /** db.expense 구현해야함 */
-    /** 신규 주문 admin에 보내야함 */
   } catch (error) {
+    console.log(error);
     res.status(400).json({
       success: false,
       errorMessage: '결제 실패',

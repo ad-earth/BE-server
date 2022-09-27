@@ -12,7 +12,7 @@ const KeywordSchema = new Schema({
   k_Cost: { type: Number, default: null },
   k_Click: { type: Number, default: null },
   k_Status: { type: String, required: true },
-  createdAt: { type: String, required: true },
+  createdAt: { type: Date, required: true },
 });
 
 module.exports = mongoose.model('Keyword', KeywordSchema);

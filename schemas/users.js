@@ -14,7 +14,7 @@ const UserSchema = new Schema({
   u_Address1: { type: String, required: true },
   u_Address2: { type: String, required: true },
   u_Img: { type: String, default: null },
-  createdAt: { type: String, required: true },
+  createdAt: { type: Date, required: true },
 });
 
 module.exports = mongoose.model('User', UserSchema);

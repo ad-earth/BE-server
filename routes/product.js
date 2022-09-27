@@ -34,10 +34,7 @@ router.post('/', auth, async (req, res) => {
     }
 
     /** 날짜 생성 */
-    const createdAt = new Date(+new Date() + 3240 * 10000)
-      .toISOString()
-      .replace('T', ' ')
-      .replace(/\..*/, '');
+    const createdAt = new Date(+new Date() + 3240 * 10000).toISOString();
 
     await Product.create({
       p_No,
@@ -331,10 +328,7 @@ router.post('/:p_No/keywords', auth, async (req, res) => {
       }
 
       /** 날짜 생성 */
-      const createdAt = new Date(+new Date() + 3240 * 10000)
-        .toISOString()
-        .replace('T', ' ')
-        .replace(/\..*/, '');
+      const createdAt = new Date(+new Date() + 3240 * 10000).toISOString();
 
       /** 키워드 광고 상태 */
       const k_Status = 'off';

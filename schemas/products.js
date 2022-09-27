@@ -12,18 +12,20 @@ const ProductSchema = new Schema({
   a_Brand: { type: String, required: true },
   p_Name: { type: String, required: true },
   p_Cost: { type: Number, required: true },
-  p_Sale: { type: Boolean, required: true },
-  p_Discount: { type: Number, default: null },
+  p_Sale: { type: Boolean, default: false },
+  p_Discount: { type: Number, default: 0 },
   p_Option: { type: Array, default: null },
   p_Desc: { type: String, required: true },
+  p_Content: { type: String, required: true },
   p_Soldout: { type: Boolean, default: false },
   p_New: { type: Boolean, default: true },
   p_Best: { type: Boolean, default: false },
   p_Price: { type: Number, default: 0 },
+  p_Cnt: { type: Number, default: 0 },
   p_Status: { type: Boolean, default: true },
   p_Review: { type: Number, default: 0 },
   p_Like: { type: Number, default: 0 },
-  createdAt: { type: String, required: true },
+  createdAt: { type: Date, required: true },
 });
 
 module.exports = mongoose.model('Product', ProductSchema);

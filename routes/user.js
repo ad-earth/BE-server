@@ -71,10 +71,7 @@ router.post('/register', async (req, res) => {
     const hashPw = await bcrypt.hash(u_Pw, salt);
 
     /** 날짜 생성 */
-    const createdAt = new Date(+new Date() + 3240 * 10000)
-      .toISOString()
-      .replace('T', ' ')
-      .replace(/\..*/, '');
+    const createdAt = new Date(+new Date() + 3240 * 10000).toISOString();
 
     /** DB 생성 */
     await User.create({

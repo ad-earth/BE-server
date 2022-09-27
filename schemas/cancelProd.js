@@ -9,7 +9,7 @@ const CancelProdSchema = new Schema({
   u_Idx: { type: Number, required: true },
   products: { type: Array, required: true },
   o_Price: { type: Number, required: true },
-  createdAt: { type: String, required: true },
+  createdAt: { type: Date, required: true },
 });
 
 module.exports = mongoose.model('CancelProd', CancelProdSchema);

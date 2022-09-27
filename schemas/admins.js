@@ -12,7 +12,7 @@ const AdminSchema = new Schema({
   a_Number: { type: String, required: true },
   a_Phone: { type: String, default: null },
   a_Charge: { type: Number, default: null },
-  createdAt: { type: String, required: true },
+  createdAt: { type: Date, required: true },
 });
 
 module.exports = mongoose.model('Admin', AdminSchema);

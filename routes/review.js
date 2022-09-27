@@ -26,10 +26,7 @@ router.post('/:p_No', auth, async (req, res) => {
     }
 
     /** 날짜 생성 */
-    const createdAt = new Date(+new Date() + 3240 * 10000)
-      .toISOString()
-      .replace('T', ' ')
-      .replace(/\..*/, '');
+    const createdAt = new Date(+new Date() + 3240 * 10000).toISOString();
 
     await Review.create({
       r_No,

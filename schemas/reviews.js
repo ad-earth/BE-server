@@ -12,7 +12,7 @@ const ReviewSchema = new Schema({
   o_No: { type: Number, required: false },
   r_Score: { type: Object, required: true },
   r_Content: { type: String, required: true },
-  createdAt: { type: String, required: true },
+  createdAt: { type: Date, required: true },
 });
 
 module.exports = mongoose.model('Review', ReviewSchema);

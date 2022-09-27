@@ -13,7 +13,7 @@ const OrderSchema = new Schema({
   o_BankBook: { type: String, required: true },
   o_Receipt: { type: Boolean, required: true },
   o_ReceiptNo: { type: String, default: null },
-  createdAt: { type: String, required: true },
+  createdAt: { type: Date, required: true },
 });
 
 module.exports = mongoose.model('Order', OrderSchema);

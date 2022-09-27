@@ -72,10 +72,7 @@ router.post('/register', async (req, res) => {
     const hashPw = await bcrypt.hash(a_Pw, salt);
 
     /** 날짜 생성 */
-    const createdAt = new Date(+new Date() + 3240 * 10000)
-      .toISOString()
-      .replace('T', ' ')
-      .replace(/\..*/, '');
+    const createdAt = new Date(+new Date() + 3240 * 10000).toISOString();
 
     /** DB 생성 */
     await Admin.create({
@@ -308,6 +305,8 @@ router.put('/charge', auth, async (req, res) => {
     const db = await Admin.findOne({ a_Idx }, { _id: 0, a_Charge: 1 }).exec();
 
     let charge = db.a_Charge + 10000;
+
+    /** 일 한도 20만원 제한 */
 
     await Admin.updateOne({ a_Idx }, { $set: { a_Charge: charge } });
     res.status(201).send({

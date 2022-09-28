@@ -20,6 +20,7 @@ const shippingRouter = require('./routes/shipping');
 const reviewRouter = require('./routes/review');
 const orderRouter = require('./routes/order');
 const cancelRouter = require('./routes/cancel');
+const adminOrderRouter = require('./routes/adminOrders');
 
 /** DB */
 const connect = require('./schemas');
@@ -58,6 +59,11 @@ app.use(
 app.use('/reviews', express.urlencoded({ extended: false }), reviewRouter);
 app.use('/orders', express.urlencoded({ extended: false }), orderRouter);
 app.use('/cancel-list', express.urlencoded({ extended: false }), cancelRouter);
+app.use(
+  '/order-list',
+  express.urlencoded({ extended: false }),
+  adminOrderRouter,
+);
 
 app.listen(port, () => console.log(`http://localhost:${port}`));
 

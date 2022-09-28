@@ -43,7 +43,10 @@ router.get('/', auth, async (req, res) => {
       for (let y in orders[x].products) {
         delete orders[x].products[y].k_No;
       }
-      date = orders[x].createdAt.substring(0, 10); // yyyy-mm-dd
+      date = orders[x].createdAt
+        .toISOString()
+        .replace('T', ' ')
+        .substring(0, 10);
       orders[x].createdAt = date;
       list = {
         o_No: orders[x].o_No,
@@ -170,6 +173,8 @@ router.put('/:o_No/cancel', auth, async (req, res) => {
       for (let a in result.products) {
         cancelDb.products.push(result.products[a]);
       }
+
+      console.log(cancelDb);
       await CancelProd.updateOne(
         { u_Idx, o_No },
         {

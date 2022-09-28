@@ -45,12 +45,12 @@ router.get('/:p_No', async (req, res) => {
     ).exec();
 
     /** 게시물에 좋아요를 누른 유저 */
-    let userLike = 'false';
+    let userLike = false;
     const { authorization } = req.headers;
 
     if (!authorization) {
       /** header에 token이 없으면 */
-      userLike = 'false';
+      userLike = false;
     } else {
       /** header에 token이 있으면 */
       const [tokenType, tokenValue] = (authorization || '').split(' ');
@@ -63,9 +63,9 @@ router.get('/:p_No', async (req, res) => {
       });
 
       if (wishUser.length > 0) {
-        userLike = 'true';
+        userLike = true;
       } else {
-        userLike = 'false';
+        userLike = false;
       }
     }
 

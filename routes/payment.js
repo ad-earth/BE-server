@@ -124,8 +124,14 @@ router.post('/complete', auth, async (req, res) => {
 
     /** 신규 주문 admin에 보내야함 */
     for (let j in products) {
+      let adminIdx = await Product.findOne(
+        { p_No: products[j].p_No },
+        { _id: 0, a_Idx: 1 },
+      );
+
       await AdminOrder.create({
         o_No: o_No,
+        a_Idx: adminIdx.a_Idx,
         p_No: products[j].p_No,
         u_Idx: u_Idx,
         u_Id: user.u_Id,

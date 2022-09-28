@@ -33,7 +33,7 @@ router.get('/', async (req, res) => {
     for (let a = 0; a < bestProd.length; a++) {
       bestProd[a].p_Best = true;
       bestProd[a].p_New = false;
-      bestProd[a].p_Thumbnail = bestProd[a].p_Thumbnail.slice(0, 1);
+      bestProd[a].p_Thumbnail = bestProd[a].p_Thumbnail.slice(0, 2);
     }
 
     /** new */
@@ -58,7 +58,7 @@ router.get('/', async (req, res) => {
     for (let b = 0; b < newProd.length; b++) {
       newProd[b].p_Best = false;
       newProd[b].p_New = true;
-      newProd[b].p_Thumbnail = newProd[b].p_Thumbnail.slice(0, 1);
+      newProd[b].p_Thumbnail = newProd[b].p_Thumbnail.slice(0, 2);
     }
 
     res.status(200).json({
@@ -105,6 +105,7 @@ router.get('/products', async (req, res) => {
         p_Category: 1,
         a_Brand: 1,
         p_Name: 1,
+        p_Desc: 1,
         p_Cost: 1,
         p_Sale: 1,
         p_Discount: 1,
@@ -133,7 +134,7 @@ router.get('/products', async (req, res) => {
     let userLike = [];
     const { authorization } = req.headers;
 
-    if (!authorization) {
+    if (!authorization || authorization == undefined) {
       /** header에 token이 없으면 */
       userLike = [];
     } else {
@@ -206,6 +207,7 @@ router.get('/search', async (req, res) => {
             p_Thumbnail: 1,
             a_Brand: 1,
             p_Name: 1,
+            p_Desc: 1,
             p_Cost: 1,
             p_Sale: 1,
             p_Discount: 1,
@@ -248,6 +250,7 @@ router.get('/search', async (req, res) => {
           p_Thumbnail: 1,
           a_Brand: 1,
           p_Name: 1,
+          p_Desc: 1,
           p_Cost: 1,
           p_Sale: 1,
           p_Discount: 1,
@@ -376,6 +379,7 @@ router.get('/products/:p_Category', async (req, res) => {
         p_Category: 1,
         a_Brand: 1,
         p_Name: 1,
+        p_Desc: 1,
         p_Cost: 1,
         p_Sale: 1,
         p_Discount: 1,

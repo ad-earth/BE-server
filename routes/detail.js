@@ -3,10 +3,10 @@ const router = express.Router();
 const Product = require('../schemas/products');
 const Wish = require('../schemas/wishes');
 const Keyword = require('../schemas/keywords');
-const User = require('../schemas/users');
 const Admin = require('../schemas/admins');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
+const Billing = require('../schemas/salesKeywords');
 
 dotenv.config();
 const jwtKey = process.env.U_TOKEN;
@@ -29,14 +29,25 @@ router.get('/:p_No', async (req, res) => {
 
     k_No = keywordData.k_No;
 
-    let adminIdx = await Product.findOne({ p_No }, { _id: 0, a_Idx: 1 }).exec();
-    let adminData = await Admin.findOne({ a_Idx: adminIdx.a_Idx });
+    let adminProd = await Product.findOne({ p_No }).exec();
+    let adminData = await Admin.findOne({ a_Idx: adminProd.a_Idx });
     await Admin.updateOne(
       { a_Idx: adminData.a_Idx },
       {
         $set: { a_Charge: adminData.a_Charge - keywordData.k_Cost },
       },
     );
+
+    const createdAt = new Date(+new Date() + 3240 * 10000).toISOString();
+
+    await Billing.create({
+      a_Idx: adminData.a_Idx,
+      keyword: keyword,
+      p_No: p_No,
+      k_Click: 1,
+      k_Cost: keywordData.k_Cost,
+      createdAt: createdAt,
+    });
   }
   try {
     let product = await Product.findOne(

@@ -366,31 +366,34 @@ router.get('/products/:p_Category', async (req, res) => {
       sort = '-p_Cost';
     }
 
+    let objFind = {};
+    if (p_Category == '전체') {
+      objFind = {};
+    } else {
+      objFind = { p_Category };
+    }
     /** 카테고리 전체 게시물 수 */
-    const cnt = await Product.find({ p_Category }).count();
+    let cnt = await Product.find(objFind).count();
 
     /** 게시물 */
-    let products = await Product.find(
-      { p_Category },
-      {
-        _id: 0,
-        p_No: 1,
-        p_Thumbnail: 1,
-        p_Category: 1,
-        a_Brand: 1,
-        p_Name: 1,
-        p_Desc: 1,
-        p_Cost: 1,
-        p_Sale: 1,
-        p_Discount: 1,
-        p_Option: 1,
-        p_New: 1,
-        p_Best: 1,
-        p_Soldout: 1,
-        p_Review: 1,
-        p_Like: 1,
-      },
-    )
+    let products = await Product.find(objFind, {
+      _id: 0,
+      p_No: 1,
+      p_Thumbnail: 1,
+      p_Category: 1,
+      a_Brand: 1,
+      p_Name: 1,
+      p_Desc: 1,
+      p_Cost: 1,
+      p_Sale: 1,
+      p_Discount: 1,
+      p_Option: 1,
+      p_New: 1,
+      p_Best: 1,
+      p_Soldout: 1,
+      p_Review: 1,
+      p_Like: 1,
+    })
       .sort(sort)
       .limit(maxpost)
       .skip(skipCnt);

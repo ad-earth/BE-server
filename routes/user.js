@@ -2,7 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 const User = require('../schemas/users');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const authMiddleware = require('../middlewares/user-middleware');
 const Joi = require('joi');
 const dotenv = require('dotenv');
@@ -92,6 +92,7 @@ router.post('/register', async (req, res) => {
       message: 'post success',
     });
   } catch (error) {
+    console.log(error);
     res.status(400).send({
       success: false,
       errorMessage: '요청한 데이터 형식이 올바르지 않습니다.',

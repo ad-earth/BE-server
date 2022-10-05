@@ -7,7 +7,7 @@ const auth = require('../middlewares/user-middleware');
 router.put('/:d_No', auth, async (req, res) => {
   try {
     const { d_No } = req.params;
-    const { d_Name, d_Phone, d_Address1, d_Address2 } = req.body;
+    const { d_Name, d_Phone, d_Address1, d_Address2, d_Address3 } = req.body;
 
     /** token */
     const { user } = res.locals;
@@ -24,6 +24,7 @@ router.put('/:d_No', auth, async (req, res) => {
             d_Phone,
             d_Address1,
             d_Address2,
+            d_Address3,
           },
         },
       );

@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 const User = require('../schemas/users');
+const Cart = require('../schemas/carts');
 const bcrypt = require('bcryptjs');
 const authMiddleware = require('../middlewares/user-middleware');
 const Joi = require('joi');
@@ -27,13 +28,14 @@ const registerSchema = Joi.object({
   u_Gender: Joi.string().required(),
   u_Address1: Joi.string().required(),
   u_Address2: Joi.string().required(),
-  u_Img: Joi.string().required(),
+  u_Address3: Joi.string().required(),
+  u_Img: Joi.string(),
 });
 
 /** 회원가입 */
 router.post('/register', async (req, res) => {
   try {
-    const {
+    let {
       u_Id,
       u_Pw,
       u_Phone,
@@ -41,8 +43,10 @@ router.post('/register', async (req, res) => {
       u_Gender,
       u_Address1,
       u_Address2,
+      u_Address3,
       u_Img,
     } = await registerSchema.validateAsync(req.body);
+
     /** 유저 번호 확인 및 생성 */
     const recentUser = await User.find().sort('-u_Idx').limit(1);
     let u_Idx = 1;
@@ -52,7 +56,7 @@ router.post('/register', async (req, res) => {
     /** 아이디 중복 확인 */
     const userId = await User.find({ u_Id: u_Id }).exec();
     if (userId.length !== 0) {
-      res.status(400).send({
+      res.status(400).json({
         errorMessage: '중복된 아이디입니다.',
       });
       return;
@@ -60,7 +64,7 @@ router.post('/register', async (req, res) => {
     /** 연락처 중복 확인 */
     const userPhone = await User.find({ u_Phone: u_Phone }).exec();
     if (userPhone.length !== 0) {
-      res.status(400).send({
+      res.status(400).json({
         errorMessage: '중복된 연락처입니다.',
       });
       return;
@@ -81,6 +85,7 @@ router.post('/register', async (req, res) => {
       u_Name,
       u_Address1,
       u_Address2,
+      u_Address3,
       u_Gender,
       u_Phone,
       u_Img,
@@ -93,7 +98,7 @@ router.post('/register', async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(400).send({
+    res.status(400).json({
       success: false,
       errorMessage: '요청한 데이터 형식이 올바르지 않습니다.',
     });
@@ -243,6 +248,7 @@ router.post('/login', async (req, res) => {
     let u_Name = user.u_Name;
     let u_Address1 = user.u_Address1;
     let u_Address2 = user.u_Address2;
+    let u_Address3 = user.u_Address3;
     let u_Gender = user.u_Gender;
     let u_Phone = user.u_Phone;
     let u_Img = user.u_Img;
@@ -253,16 +259,29 @@ router.post('/login', async (req, res) => {
     if (authenticate === true) {
       const token = jwt.sign({ u_Idx: user.u_Idx }, jwtKey);
 
-      res.status(200).send({
+      let userInfo = {
         u_Idx,
         u_Id,
         u_Name,
         u_Address1,
         u_Address2,
+        u_Address3,
         u_Gender,
         u_Phone,
         u_Img,
         token,
+      };
+
+      let getList = await Cart.find(
+        { u_Idx },
+        { _id: 0, __v: 0, u_Idx: 0 },
+      ).exec();
+
+      let cartList = getList[0].cartList;
+
+      res.status(200).send({
+        userInfo,
+        cartList,
       });
       return;
     } else {
@@ -282,8 +301,15 @@ router.post('/login', async (req, res) => {
 /** 정보 수정 */
 router.put('/', authMiddleware, async (req, res) => {
   try {
-    const { u_Name, u_Address1, u_Address2, u_Gender, u_Phone, u_Img } =
-      req.body;
+    const {
+      u_Name,
+      u_Address1,
+      u_Address2,
+      u_Address3,
+      u_Gender,
+      u_Phone,
+      u_Img,
+    } = req.body;
 
     /** token */
     const { user } = res.locals;
@@ -296,6 +322,7 @@ router.put('/', authMiddleware, async (req, res) => {
           u_Name,
           u_Address1,
           u_Address2,
+          u_Address3,
           u_Gender,
           u_Phone,
           u_Img,

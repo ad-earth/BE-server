@@ -13,6 +13,7 @@ const UserSchema = new Schema({
   u_Gender: { type: String, required: true },
   u_Address1: { type: String, required: true },
   u_Address2: { type: String, required: true },
+  u_Address3: { type: String, required: true },
   u_Img: { type: String, default: null },
   createdAt: { type: Date, required: true },
 });

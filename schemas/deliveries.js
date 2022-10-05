@@ -11,6 +11,7 @@ const DeliverySchema = new Schema({
   d_Phone: { type: String, required: true },
   d_Address1: { type: String, required: true },
   d_Address2: { type: String, required: true },
+  d_Address3: { type: String, required: true },
 });
 
 module.exports = mongoose.model('Delivery', DeliverySchema);

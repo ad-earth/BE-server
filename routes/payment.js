@@ -17,7 +17,14 @@ router.get('/', auth, async (req, res) => {
     /** userInfo */
     const userInfo = await User.findOne(
       { u_Idx },
-      { _id: 0, u_Name: 1, u_Phone: 1, u_Address1: 1, u_Address2: 1 },
+      {
+        _id: 0,
+        u_Name: 1,
+        u_Phone: 1,
+        u_Address1: 1,
+        u_Address2: 1,
+        u_Address3: 1,
+      },
     ).exec();
 
     /** addressList */
@@ -43,8 +50,7 @@ router.post('/complete', auth, async (req, res) => {
     /** token */
     const { user } = res.locals;
     const u_Idx = user.u_Idx;
-    let { address, products, o_Price, o_BankBook, o_Receipt, o_ReceiptNo } =
-      req.body;
+    let { address, products, o_Price } = req.body;
 
     /** 해당 상품의 p_Status = false이거나 p_Soldout = true 면 결제 불가*/
     for (let i in products) {
@@ -77,6 +83,7 @@ router.post('/complete', auth, async (req, res) => {
         d_Phone: address.d_Phone,
         d_Address1: address.d_Address1,
         d_Address2: address.d_Address2,
+        d_Address3: address.d_Address3,
       });
 
       let newAddress = await Delivery.findOne(
@@ -90,6 +97,7 @@ router.post('/complete', auth, async (req, res) => {
         d_Phone: newAddress.d_Phone,
         d_Address1: newAddress.d_Address1,
         d_Address2: newAddress.d_Address2,
+        d_Address3: newAddress.d_Address3,
         d_Memo: memo,
       };
     }
@@ -116,9 +124,6 @@ router.post('/complete', auth, async (req, res) => {
       address,
       products,
       o_Price,
-      o_BankBook,
-      o_Receipt,
-      o_ReceiptNo,
       createdAt,
     });
 
@@ -179,6 +184,7 @@ router.get('/complete', auth, async (req, res) => {
       d_Phone: orders.address.d_Phone,
       d_Address1: orders.address.d_Address1,
       d_Address2: orders.address.d_Address2,
+      d_Address3: orders.address.d_Address3,
     };
 
     res.status(200).json(result);

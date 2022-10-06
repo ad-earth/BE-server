@@ -10,8 +10,8 @@ const OrderSchema = new Schema({
   address: { type: Object, required: true },
   products: { type: Array, required: true },
   o_Price: { type: Number, required: true },
-  o_BankBook: { type: String, required: true },
-  o_Receipt: { type: Boolean, required: true },
+  o_BankBook: { type: String, default: null },
+  o_Receipt: { type: Boolean, default: null },
   o_ReceiptNo: { type: String, default: null },
   createdAt: { type: Date, required: true },
 });

@@ -3,6 +3,8 @@ const router = express.Router();
 const Review = require('../schemas/reviews');
 const Product = require('../schemas/products');
 const auth = require('../middlewares/user-middleware');
+const Order = require('../schemas/orders');
+const AdminOrder = require('../schemas/adminOrders');
 
 /** 구매평 등록 */
 router.post('/:p_No', auth, async (req, res) => {
@@ -16,45 +18,60 @@ router.post('/:p_No', auth, async (req, res) => {
     const u_Id = user.u_Id;
 
     /** admin 판매 목록에 구매내역 있는지 확인 */
-    /** 구매내역 있고 reviews = false면 댓글 작성 가능  */
-    /** o_No는 현재 required false지만 어드민 완료시 true로 변경 */
-    /** 댓글 번호 확인 및 생성 (보류) */
-    const recentNo = await Review.find().sort('-r_No').limit(1);
-    let r_No = 1;
-    if (recentNo.length !== 0) {
-      r_No = recentNo[0]['r_No'] + 1;
-    }
-
-    /** 날짜 생성 */
-    const createdAt = new Date(+new Date() + 3240 * 10000).toISOString();
-
-    await Review.create({
-      r_No,
-      r_Content,
-      r_Score,
-      u_Idx,
+    let findAdminOrder = await AdminOrder.findOne({
       p_No,
-      u_Id,
-      createdAt,
-    });
+      u_Idx,
+      'products.r_Status': true,
+    }).exec();
 
-    /** db.product.p_Reviews + 1 */
-    let reviewsCnt = await Product.findOne({ p_No }, { p_Review: 1 }).exec();
-
-    let prodReview = 0;
-    if (reviewsCnt.p_Review < 1) {
-      prodReview = 1;
+    if (findAdminOrder == null) {
+      res.status(401).json({
+        errorMessage: '작성 권한 없음',
+      });
     } else {
-      prodReview = reviewsCnt.p_Review + 1;
+      /** 댓글 번호 확인 및 생성 (보류) */
+      const recentNo = await Review.find().sort('-r_No').limit(1);
+      let r_No = 1;
+      if (recentNo.length !== 0) {
+        r_No = recentNo[0]['r_No'] + 1;
+      }
+      /** 날짜 생성 */
+      const createdAt = new Date(+new Date() + 3240 * 10000).toISOString();
+      await Review.create({
+        r_No,
+        r_Content,
+        r_Score,
+        u_Idx,
+        p_No,
+        u_Id,
+        createdAt,
+      });
+      /** db.product.p_Reviews + 1 */
+      let reviewsCnt = await Product.findOne({ p_No }, { p_Review: 1 }).exec();
+      let prodReview = 0;
+      if (reviewsCnt.p_Review < 1) {
+        prodReview = 1;
+      } else {
+        prodReview = reviewsCnt.p_Review + 1;
+      }
+      await Product.updateOne({ p_No }, { p_Review: prodReview });
+
+      await AdminOrder.updateOne(
+        { o_No: findAdminOrder.o_No, p_No },
+        { $set: { 'products.r_Status': false } },
+      );
+
+      await Order.updateOne(
+        { o_No: findAdminOrder.o_No, 'products.p_No': p_No },
+        { $set: { 'products.$.r_Status': false } },
+      );
     }
-
-    await Product.updateOne({ p_No }, { p_Review: prodReview });
-
     res.status(201).json({
       success: true,
       message: 'post success',
     });
   } catch (error) {
+    console.log(error);
     res.status(400).json({
       success: false,
       errorMessage: '댓글 등록 실패',
@@ -77,20 +94,38 @@ router.get('/:p_No', async (req, res) => {
     const cnt = await Product.findOne({ p_No }, { _id: 0, p_Review: 1 }).exec();
 
     /** 게시물 */
-    let reviews = await Review.find(
+    let prodReview = await Review.find(
       { p_No },
       { _id: 0, __v: 0, p_No: 0, u_Idx: 0 },
     )
       .limit(maxpost)
       .skip(skipCnt);
 
+    let arrResult = [];
+    for (let a in prodReview) {
+      let date = prodReview[a].createdAt
+        .toISOString()
+        .replace('T', ' ')
+        .substring(0, 10);
+
+      let reviews = {
+        r_No: prodReview[a].r_No,
+        u_Id: prodReview[a].u_Id,
+        r_Score: prodReview[a].r_Score,
+        r_Content: prodReview[a].r_Content,
+        createdAt: date,
+      };
+      arrResult.push(reviews);
+    }
+
     let result = {
       p_review: cnt.p_Review,
-      reviews: reviews,
+      reviews: arrResult,
     };
 
     res.status(200).json(result);
   } catch (error) {
+    console.log(error);
     res.status(400).json({
       success: false,
     });

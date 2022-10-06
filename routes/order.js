@@ -3,6 +3,7 @@ const router = express.Router();
 const Order = require('../schemas/orders');
 const CancelProd = require('../schemas/cancelProd');
 const auth = require('../middlewares/user-middleware');
+const AdminOrder = require('../schemas/adminOrders');
 
 /** 주문조회 */
 router.get('/', auth, async (req, res) => {
@@ -47,10 +48,10 @@ router.get('/', auth, async (req, res) => {
         .toISOString()
         .replace('T', ' ')
         .substring(0, 10);
-      orders[x].createdAt = date;
+
       list = {
         o_No: orders[x].o_No,
-        o_Date: orders[x].createdAt,
+        o_Date: date,
         o_Price: orders[x].o_Price,
         products: orders[x].products,
       };
@@ -88,7 +89,7 @@ router.get('/:o_No', auth, async (req, res) => {
       delete db.products[x].k_No;
     }
 
-    let date = db.createdAt.substring(0, 10);
+    let date = db.createdAt.toISOString().replace('T', ' ').substring(0, 10);
 
     let result = {
       o_No: db.o_No,
@@ -124,80 +125,56 @@ router.put('/:o_No/cancel', auth, async (req, res) => {
     /** o_No의 p_No의 o_Status 찾기 */
     let db = await Order.findOne({ u_Idx, o_No }).exec();
 
-    /** 주문완료일시 취소완료 변경 */
-    /** 취소 요청처리해야함 */
-    /** 배송완료면 취소완료 변경 안됨 */
-    let result = {};
-    let arrProd = [];
-    if (p_No.length > 1) {
-      for (let x = 0; x < db.products.length; x++) {
-        for (let z in p_No) {
-          if (db.products[x].p_No === p_No[z]) {
-            db.products[x].o_Status = '취소완료';
-            arrProd.push(db.products[x]);
-          }
-        }
-      }
-      result = {
-        o_No: db.o_No,
-        createdAt: db.createdAt,
-        u_Idx: db.u_Idx,
-        o_Price: db.o_Price,
-        products: arrProd,
-      };
-    } else {
-      for (let y in db.products) {
-        if (db.products[y].p_No === p_No[0]) {
-          db.products[y].o_Status = '취소완료';
-          result = {
-            o_No: db.o_No,
-            createdAt: db.createdAt,
-            u_Idx: db.u_Idx,
-            o_Price: db.o_Price,
-            products: db.products[y],
-          };
-        }
-      }
-    }
-
-    let cancelDb = await CancelProd.findOne({ u_Idx, o_No }).exec();
-    if (cancelDb == null) {
-      await CancelProd.create({
-        o_No: result.o_No,
-        createdAt: result.createdAt,
-        u_Idx: result.u_Idx,
-        o_Price: result.o_Price,
-        products: result.products,
-      });
-    } else {
-      for (let a in result.products) {
-        cancelDb.products.push(result.products[a]);
-      }
-
-      console.log(cancelDb);
-      await CancelProd.updateOne(
-        { u_Idx, o_No },
+    for (let a in p_No) {
+      await Order.updateOne(
+        { o_No, 'products.p_No': p_No[a] },
         {
-          $set: {
-            products: cancelDb.products,
-          },
+          $set: { 'products.$.o_Status': '취소완료' },
+        },
+      );
+
+      await AdminOrder.updateOne(
+        { o_No, p_No: p_No[a] },
+        {
+          $set: { 'products.o_Status': '주문취소', o_Status: '주문취소' },
         },
       );
     }
 
-    await Order.updateOne(
-      { u_Idx, o_No },
-      {
-        $set: {
-          products: db.products,
-        },
-      },
-    );
+    /** 취소 상품 리스트 생성 */
+    let cancelData = await CancelProd.findOne({ u_Idx, o_No }).exec();
+    // cancelProd에 해당 o_No로 디비 있나 확인 후 있으면 삭제
+    if (cancelData != null) {
+      await CancelProd.deleteOne({ u_Idx, o_No });
+    }
+
+    let orderData = await Order.findOne({
+      u_Idx,
+      o_No,
+    }).exec();
+
+    let arrProd = [];
+    for (let b in orderData.products) {
+      if (orderData.products[b].o_Status == '취소완료') {
+        arrProd.push(orderData.products[b]);
+      } else {
+        continue;
+      }
+    }
+
+    let result = {
+      o_No: o_No,
+      u_Idx: u_Idx,
+      products: arrProd,
+      o_Price: orderData.o_Price,
+      createdAt: orderData.createdAt,
+    };
+
+    await CancelProd.create(result);
 
     res.status(201).json({
       success: true,
     });
-    return;
   } catch (error) {
     console.log(error);
     res.status(400).json({

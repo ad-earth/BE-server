@@ -22,10 +22,13 @@ router.get('/', auth, async (req, res) => {
     let objList = {};
     let cancelList = [];
     for (let x in db) {
-      let date = db[x].createdAt;
+      let date = db[x].createdAt
+        .toISOString()
+        .replace('T', ' ')
+        .substring(0, 10);
       objList = {
         o_No: db[x].o_No,
-        o_Date: date.substring(0, 10),
+        o_Date: date,
         o_Price: db[x].o_Price,
         products: db[x].products,
       };

@@ -5,7 +5,6 @@ const Product = require('../schemas/products');
 const AdminOrder = require('../schemas/adminOrders');
 const SalesProduct = require('../schemas/salesProducts');
 const SalesKeyword = require('../schemas/salesKeywords');
-const e = require('express');
 
 /** 신규주문 수 */
 router.get('/new-orders', auth, async (req, res) => {
@@ -93,7 +92,41 @@ router.get('/last-sales', auth, async (req, res) => {
   }
 });
 
-/** 광고 키워드 순위 10 */
+/** 인기 키워드 순위 10 */
+router.get('/popular-keywords', async (req, res) => {
+  try {
+    let data = await SalesKeyword.aggregate([
+      {
+        $group: {
+          _id: { keyword: '$keyword' },
+          k_Click: { $sum: '$k_Click' },
+        },
+      },
+      { $limit: 10 },
+      { $sort: { k_Click: -1 } },
+    ]);
+    let keywords = [];
+    for (let x in data) {
+      keywords.push(data[x]._id.keyword);
+    }
+    console.log('keywords: ', keywords);
+    if (keywords.length != 9) {
+      let pushCnt = 10 - keywords.length;
+      for (let y = 0; y < pushCnt; y++) {
+        keywords.push('null');
+      }
+    }
+    return res.status(200).json({
+      keywords,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({
+      success: false,
+    });
+  }
+});
+
 /** 광고 요약 보고서 */
 router.get('/expense-reports', auth, async (req, res) => {
   try {
@@ -150,6 +183,7 @@ router.get('/expense-reports', auth, async (req, res) => {
 
       data.push(objData);
     }
+    data.reverse();
     return res.status(200).json({
       data,
     });

@@ -2,22 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Cart = require('../schemas/carts');
 const auth = require('../middlewares/user-middleware');
-const Product = require('../schemas/products');
-
-/** 장바구니 상품 옵션 조회 */
-router.get('/:p_No', auth, async (req, res) => {
-  try {
-    const { p_No } = req.params;
-
-    let data = await Product.findOne({ p_No }, { _id: 0, p_Option: 1 });
-    res.status(200).json(data);
-  } catch (error) {
-    console.log(error);
-    res.status(400).json({
-      success: false,
-    });
-  }
-});
 
 /** 장바구니 저장 */
 router.post('/', auth, async (req, res) => {

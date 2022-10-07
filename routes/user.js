@@ -115,7 +115,7 @@ const findIdSchema = Joi.object({
 /** 아이디 찾기 */
 router.get('/find-id', async (req, res) => {
   try {
-    const { u_Name, u_Phone } = await findIdSchema.validateAsync(req.body);
+    const { u_Name, u_Phone } = await findIdSchema.validateAsync(req.query);
     const userName = await User.find({ u_Name: u_Name }).exec();
     const userPhone = await User.find({ u_Phone: u_Phone }).exec();
     if (userName.length === 0 || userPhone.length === 0) {
@@ -151,7 +151,7 @@ const findPwSchema = Joi.object({
 router.get('/find-password', async (req, res) => {
   try {
     const { u_Id, u_Name, u_Phone } = await findPwSchema.validateAsync(
-      req.body,
+      req.query,
     );
     const userId = await User.find({ u_Id: u_Id }).exec();
     const userName = await User.find({ u_Name: u_Name }).exec();

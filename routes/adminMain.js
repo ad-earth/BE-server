@@ -3,7 +3,9 @@ const router = express.Router();
 const auth = require('../middlewares/admin-middleware');
 const Product = require('../schemas/products');
 const AdminOrder = require('../schemas/adminOrders');
-const Sales = require('../schemas/salesProducts');
+const SalesProduct = require('../schemas/salesProducts');
+const SalesKeyword = require('../schemas/salesKeywords');
+const e = require('express');
 
 /** 신규주문 수 */
 router.get('/new-orders', auth, async (req, res) => {
@@ -55,7 +57,7 @@ router.get('/last-sales', auth, async (req, res) => {
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
 
-    /** 현재 시간 */
+    /** 현재 날짜 */
     let today = new Date(+new Date() + 3240 * 10000)
       .toISOString()
       .replace('T', ' ')
@@ -73,7 +75,7 @@ router.get('/last-sales', auth, async (req, res) => {
     /** 현재 달 1일 */
     end.setDate(endDate.getDate() - endDate.getDate() + 1);
 
-    let data = await Sales.aggregate([
+    let data = await SalesProduct.aggregate([
       { $match: { a_Idx, createdAt: { $gte: start, $lte: end } } },
       { $group: { _id: a_Idx, p_Price: { $sum: '$p_Price' } } },
     ]);
@@ -90,7 +92,73 @@ router.get('/last-sales', auth, async (req, res) => {
     });
   }
 });
+
 /** 광고 키워드 순위 10 */
 /** 광고 요약 보고서 */
+router.get('/expense-reports', auth, async (req, res) => {
+  try {
+    /** token */
+    const { admin } = res.locals;
+    const a_Idx = admin.a_Idx;
+
+    /** 현재 날짜 */
+    let today = new Date(+new Date() + 3240 * 10000)
+      .toISOString()
+      .replace('T', ' ')
+      .substring(0, 10);
+
+    let startDate = new Date(today);
+    let start = new Date(today);
+    let endDate = new Date(today);
+    let end = new Date(today);
+
+    let objData = {};
+    let data = [];
+    for (let i = 1; i < 4; i++) {
+      /** 지난 달 1일 */
+      start.setMonth(startDate.getMonth() - i);
+      start.setDate(startDate.getDate() - startDate.getDate() + 1);
+
+      /** 현재 달 1일 */
+      end.setMonth(endDate.getMonth() - i + 1);
+      end.setDate(endDate.getDate() - endDate.getDate() + 1);
+
+      let result = await SalesKeyword.aggregate([
+        { $match: { a_Idx, createdAt: { $gte: start, $lte: end } } },
+        {
+          $group: {
+            _id: a_Idx,
+            k_Cost: { $sum: '$k_Cost' },
+            p_Price: { $sum: '$p_Price' },
+          },
+        },
+      ]);
+
+      if (result.length == 1) {
+        objData = {
+          month: start.getMonth() + 1 + '월',
+          adCost: result[0].k_Cost,
+          salesCost: result[0].p_Price,
+        };
+      } else {
+        objData = {
+          month: start.getMonth() + 1 + '월',
+          adCost: 0,
+          salesCost: 0,
+        };
+      }
+
+      data.push(objData);
+    }
+    return res.status(200).json({
+      data,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({
+      success: false,
+    });
+  }
+});
 
 module.exports = router;

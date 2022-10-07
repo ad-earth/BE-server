@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middlewares/admin-middleware');
 const SalesProduct = require('../schemas/salesProducts');
+
+/** 상품 보고서 */
 router.get('/', auth, async (req, res) => {
   try {
     let { date, p_Category } = req.body;
@@ -82,7 +84,7 @@ router.get('/', auth, async (req, res) => {
       products.push(objData);
     }
 
-    /** 전체 게시물 수 */
+    /** 전체 수 */
     let cnt = products.length;
 
     res.status(200).json({

@@ -4,7 +4,6 @@ const Admin = require('../schemas/admins');
 const Product = require('../schemas/products');
 const Keyword = require('../schemas/keywords');
 const auth = require('../middlewares/admin-middleware');
-const { bool } = require('joi');
 
 /** 상품등록 */
 router.post('/', auth, async (req, res) => {
@@ -78,7 +77,7 @@ router.get('/', auth, async (req, res) => {
     page == 1 ? (cnt = 0) : (cnt = page * maxpost - maxpost);
 
     let findData = {};
-    if (p_Category.length != 0) {
+    if (p_Category.length != 0 && p_Category != '전체') {
       /** 카테고리별 상품 */
       findData = { a_Idx, p_Category };
     } else {

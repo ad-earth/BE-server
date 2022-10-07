@@ -20,12 +20,12 @@ router.post('/', auth, async (req, res) => {
     }
 
     await Cart.create({ u_Idx, cartList });
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: 'post success',
     });
   } catch (error) {
-    res.status(400).json({
+    return res.status(400).json({
       success: false,
       errorMessage: '장바구니 등록 실패',
     });
@@ -44,9 +44,9 @@ router.get('/', auth, async (req, res) => {
       { _id: 0, __v: 0, u_Idx: 0 },
     ).exec();
 
-    res.status(200).json(cartList[0]);
+    return res.status(200).json(cartList[0]);
   } catch (error) {
-    res.status(400).json({
+    return res.status(400).json({
       success: false,
     });
   }

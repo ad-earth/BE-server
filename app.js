@@ -1,10 +1,27 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-app.use(cors());
+
+// let whiteList = [
+//   'http://localhost:3005',
+//   'http://localhost:3000',
+//   'http://www.adearth-test.shop',
+// ];
+// let corsOptions = {
+//   origin: function (origin, callback) {
+//     if (whiteList.indexOf(origin) !== -1) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   Credential: true,
+// };
+// app.use(cors(corsOptions));
+app.use(cors()); // dev
+
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
-const port = 3005;
 
 /** Router */
 const userRouter = require('./routes/user');
@@ -20,7 +37,9 @@ const shippingRouter = require('./routes/shipping');
 const reviewRouter = require('./routes/review');
 const orderRouter = require('./routes/order');
 const cancelRouter = require('./routes/cancel');
-const adminOrderRouter = require('./routes/adminOrders');
+const adminOrderRouter = require('./routes/adminOrder');
+const prodReportRouter = require('./routes/prodReport');
+const keywordReportRouter = require('./routes/keywordReport');
 
 /** DB */
 const connect = require('./schemas');
@@ -28,6 +47,7 @@ connect();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+// app.use(morgan('combined')); // 배포
 app.use(morgan('dev'));
 
 app.get('/', (req, res) => {
@@ -64,7 +84,15 @@ app.use(
   express.urlencoded({ extended: false }),
   adminOrderRouter,
 );
-
-app.listen(port, () => console.log(`http://localhost:${port}`));
+app.use(
+  '/sales-report',
+  express.urlencoded({ extended: false }),
+  prodReportRouter,
+);
+app.use(
+  '/ad-report',
+  express.urlencoded({ extended: false }),
+  keywordReportRouter,
+);
 
 module.exports = app;

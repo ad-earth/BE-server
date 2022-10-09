@@ -3,6 +3,7 @@ const router = express.Router();
 const auth = require('../middlewares/admin-middleware');
 const Product = require('../schemas/products');
 const AdminOrder = require('../schemas/adminOrders');
+const Admin = require('../schemas/admins');
 const SalesProduct = require('../schemas/salesProducts');
 const SalesKeyword = require('../schemas/salesKeywords');
 
@@ -190,6 +191,47 @@ router.get('/expense-reports', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).json({
+      success: false,
+    });
+  }
+});
+
+/** 광고비 충전 */
+router.put('/charge', auth, async (req, res) => {
+  try {
+    /** token */
+    const { admin } = res.locals;
+    const a_Idx = admin.a_Idx;
+
+    const db = await Admin.findOne({ a_Idx }, { _id: 0, a_Charge: 1 }).exec();
+
+    let charge = db.a_Charge + 10000;
+
+    await Admin.updateOne({ a_Idx }, { $set: { a_Charge: charge } });
+
+    return res.status(201).send({
+      success: true,
+    });
+  } catch (error) {
+    return res.status(400).send({
+      success: false,
+    });
+  }
+});
+
+/** 광고비 조회 */
+router.get('/charge', auth, async (req, res) => {
+  try {
+    /** token */
+    const { admin } = res.locals;
+    const a_Idx = admin.a_Idx;
+
+    const db = await Admin.findOne({ a_Idx }, { _id: 0, a_Charge: 1 }).exec();
+
+    return res.status(200).send(db);
+  } catch (error) {
+    console.log(error);
+    return res.status(400).send({
       success: false,
     });
   }

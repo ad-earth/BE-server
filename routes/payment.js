@@ -100,6 +100,49 @@ router.post('/complete', auth, async (req, res) => {
         d_Address3: newAddress.d_Address3,
         d_Memo: memo,
       };
+    } else if (address.d_No == null) {
+      // userInfo로 보냄
+      let recentUserNo = await Delivery.find().sort('-d_No').limit(1);
+      let d_No = 1;
+      if (recentUserNo.length !== 0) {
+        d_No = recentUserNo[0]['d_No'] + 1;
+      }
+      await Delivery.create({
+        d_No,
+        u_Idx,
+        d_Name: user.u_Name,
+        d_Phone: user.u_Phone,
+        d_Address1: user.u_Address1,
+        d_Address2: user.u_Address2,
+        d_Address3: user.u_Address3,
+      });
+
+      let userNewAddress = await Delivery.findOne(
+        { d_No },
+        { _id: 0, __v: 0, u_Idx: 0 },
+      ).exec();
+
+      address = {
+        d_No: userNewAddress.d_No,
+        d_Name: userNewAddress.d_Name,
+        d_Phone: userNewAddress.d_Phone,
+        d_Address1: userNewAddress.d_Address1,
+        d_Address2: userNewAddress.d_Address2,
+        d_Address3: userNewAddress.d_Address3,
+        d_Memo: memo,
+      };
+    } else {
+      // d_No 기존에 존재함
+      let trueNo = await Delivery.findOne({ d_No: address.d_No }).exec();
+      address = {
+        d_No: trueNo.d_No,
+        d_Name: trueNo.d_Name,
+        d_Phone: trueNo.d_Phone,
+        d_Address1: trueNo.d_Address1,
+        d_Address2: trueNo.d_Address2,
+        d_Address3: trueNo.d_Address3,
+        d_Memo: memo,
+      };
     }
 
     /** products[i].o_Status = "주문완료" */
@@ -109,11 +152,13 @@ router.post('/complete', auth, async (req, res) => {
     }
 
     /** 주문자 번호 확인 및 생성 (보류) */
-    const recentNo = await Order.find().sort('-o_No').limit(1);
-    let o_No = 10001;
-    if (recentNo.length !== 0) {
-      o_No = recentNo[0]['o_No'] + 1;
-    }
+    // const recentNo = await Order.find().sort('-o_No').limit(1);
+    // let o_No = 10001;
+    // if (recentNo.length !== 0) {
+    //   o_No = recentNo[0]['o_No'] + 1;
+    // }
+
+    let o_No = new Date().valueOf();
 
     /** 날짜 생성 */
     const createdAt = new Date(+new Date() + 3240 * 10000).toISOString();
@@ -146,9 +191,6 @@ router.post('/complete', auth, async (req, res) => {
         o_Status: '신규주문',
       });
     }
-
-    /** db.sales 구현해야함 */
-    /** db.expense 구현해야함 */
 
     res.status(201).json({
       success: true,

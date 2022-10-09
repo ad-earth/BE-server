@@ -26,11 +26,13 @@ router.post('/', auth, async (req, res) => {
     const a_Brand = admin.a_Brand;
 
     /** 판매자 번호 확인 및 생성 (보류) */
-    const recentNo = await Product.find().sort('-p_No').limit(1);
-    let p_No = 1001; // 상품당 옵션 부가번호
-    if (recentNo.length !== 0) {
-      p_No = recentNo[0]['p_No'] + 1;
-    }
+    // const recentNo = await Product.find().sort('-p_No').limit(1);
+    // let p_No = 1001; // 상품당 옵션 부가번호
+    // if (recentNo.length !== 0) {
+    //   p_No = recentNo[0]['p_No'] + 1;
+    // }
+
+    let p_No = new Date().valueOf();
 
     /** 날짜 생성 */
     const createdAt = new Date(+new Date() + 3240 * 10000).toISOString();

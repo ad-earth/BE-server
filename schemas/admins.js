@@ -11,7 +11,7 @@ const AdminSchema = new Schema({
   a_Brand: { type: String, required: true },
   a_Number: { type: String, required: true },
   a_Phone: { type: String, default: null },
-  a_Charge: { type: Number, default: null },
+  a_Charge: { type: Number, default: 0 },
   createdAt: { type: Date, required: true },
 });
 

@@ -19,12 +19,12 @@ router.get('/new-orders', auth, async (req, res) => {
       o_Status: '신규주문',
     }).count();
 
-    return res.status(200).json({
+    return res.status(200).send({
       newOrders,
     });
   } catch (error) {
     console.log(error);
-    res.status(400).json({
+    res.status(400).send({
       success: false,
     });
   }
@@ -39,12 +39,12 @@ router.get('/on-products', auth, async (req, res) => {
 
     let productsCnt = await Product.find({ a_Idx, p_Status: true }).count();
 
-    return res.status(200).json({
+    return res.status(200).send({
       productsCnt,
     });
   } catch (error) {
     console.log(error);
-    return res.status(400).json({
+    return res.status(400).send({
       success: false,
     });
   }
@@ -80,14 +80,19 @@ router.get('/last-sales', auth, async (req, res) => {
       { $group: { _id: a_Idx, p_Price: { $sum: '$p_Price' } } },
     ]);
 
-    let lastSales = data[0].p_Price;
+    let lastSales = 0;
+    if (data.length == 0) {
+      lastSales = 0;
+    } else {
+      lastSales = data[0].p_Price;
+    }
 
-    res.status(200).json({
+    res.status(200).send({
       lastSales,
     });
   } catch (error) {
     console.log(error);
-    res.status(400).json({
+    res.status(400).send({
       success: false,
     });
   }
@@ -110,19 +115,18 @@ router.get('/popular-keywords', async (req, res) => {
     for (let x in data) {
       keywords.push(data[x]._id.keyword);
     }
-    console.log('keywords: ', keywords);
     if (keywords.length != 9) {
       let pushCnt = 10 - keywords.length;
-      for (let y = 0; y < pushCnt; y++) {
+      for (let y in pushCnt) {
         keywords.push('null');
       }
     }
-    return res.status(200).json({
+    return res.status(200).send({
       keywords,
     });
   } catch (error) {
     console.log(error);
-    return res.status(400).json({
+    return res.status(400).send({
       success: false,
     });
   }
@@ -185,12 +189,12 @@ router.get('/expense-reports', auth, async (req, res) => {
       data.push(objData);
     }
     data.reverse();
-    return res.status(200).json({
+    return res.status(200).send({
       data,
     });
   } catch (error) {
     console.log(error);
-    return res.status(400).json({
+    return res.status(400).send({
       success: false,
     });
   }

@@ -10,7 +10,9 @@ const AdminOrder = require('../schemas/adminOrders');
 router.post('/:p_No', auth, async (req, res) => {
   try {
     let { p_No } = req.params;
-    const { r_Score, r_Content } = req.body;
+    let { r_Score, r_Content } = req.body;
+
+    p_No = Number(p_No);
 
     /** token */
     const { user } = res.locals;
@@ -25,16 +27,13 @@ router.post('/:p_No', auth, async (req, res) => {
     }).exec();
 
     if (findAdminOrder == null) {
-      res.status(401).json({
+      return res.status(401).send({
         errorMessage: '작성 권한 없음',
       });
     } else {
-      /** 댓글 번호 확인 및 생성 (보류) */
-      const recentNo = await Review.find().sort('-r_No').limit(1);
-      let r_No = 1;
-      if (recentNo.length !== 0) {
-        r_No = recentNo[0]['r_No'] + 1;
-      }
+      /** 댓글 고유 번호 */
+      let r_No = new Date().valueOf();
+
       /** 날짜 생성 */
       const createdAt = new Date(+new Date() + 3240 * 10000).toISOString();
       await Review.create({
@@ -66,13 +65,13 @@ router.post('/:p_No', auth, async (req, res) => {
         { $set: { 'products.$.r_Status': false } },
       );
     }
-    res.status(201).json({
+    return res.status(201).send({
       success: true,
       message: 'post success',
     });
   } catch (error) {
     console.log(error);
-    res.status(400).json({
+    return res.status(400).send({
       success: false,
       errorMessage: '댓글 등록 실패',
     });
@@ -82,11 +81,14 @@ router.post('/:p_No', auth, async (req, res) => {
 /** 구매평 조회 */
 router.get('/:p_No', async (req, res) => {
   try {
-    const { p_No } = req.params;
-    const { page, maxpost } = req.query;
+    let { p_No } = req.params;
+    let { page, maxpost } = req.query;
+
+    p_No = Number(p_No);
+    page = Number(page);
+    maxpost = Number(maxpost);
 
     /** maxpost 수만큼 page 처리 */
-    Number(page, maxpost);
     let skipCnt = 0;
     page == 1 ? (skipCnt = 0) : (skipCnt = page * maxpost - maxpost);
 
@@ -123,10 +125,10 @@ router.get('/:p_No', async (req, res) => {
       reviews: arrResult,
     };
 
-    res.status(200).json(result);
+    return res.status(200).send(result);
   } catch (error) {
     console.log(error);
-    res.status(400).json({
+    return res.status(400).send({
       success: false,
     });
   }
@@ -135,8 +137,10 @@ router.get('/:p_No', async (req, res) => {
 /** 구매평 수정 */
 router.put('/:r_No', auth, async (req, res) => {
   try {
-    const { r_No } = req.params;
+    let { r_No } = req.params;
     const { r_Content, r_Score } = req.body;
+
+    r_No = Number(r_No);
 
     /** token */
     const { user } = res.locals;
@@ -146,19 +150,18 @@ router.put('/:r_No', auth, async (req, res) => {
     let db = await Review.findOne({ r_No, u_Idx }).exec();
     if (db != null) {
       await Review.updateOne({ r_No, u_Idx }, { $set: { r_Content, r_Score } });
-      res.status(201).json({
+      return res.status(201).send({
         success: true,
       });
-      return;
     } else {
-      res.status(401).json({
+      return res.status(401).send({
         success: false,
         errorMessage: '권한 없음',
       });
-      return;
     }
   } catch (error) {
-    res.status(400).json({
+    console.log(error);
+    return res.status(400).send({
       success: false,
     });
   }
@@ -167,7 +170,9 @@ router.put('/:r_No', auth, async (req, res) => {
 /** 구매평 삭제 */
 router.delete('/:r_No', auth, async (req, res) => {
   try {
-    const { r_No } = req.params;
+    let { r_No } = req.params;
+
+    r_No = Number(r_No);
 
     /** token */
     const { user } = res.locals;
@@ -185,20 +190,19 @@ router.delete('/:r_No', auth, async (req, res) => {
         { $set: { p_Review: reviewCnt } },
       );
     } else {
-      res.status(401).json({
+      return res.status(401).send({
         success: false,
         errorMessage: '권한 없음',
       });
-      return;
     }
     await Review.deleteOne({ r_No });
-    res.status(200).json({
+    return res.status(200).send({
       success: true,
       message: 'delete success',
     });
-    return;
   } catch (error) {
-    res.status(400).json({
+    console.log(error);
+    return res.status(400).send({
       success: false,
     });
   }

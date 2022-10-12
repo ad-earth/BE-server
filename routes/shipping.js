@@ -29,16 +29,15 @@ router.put('/:d_No', auth, async (req, res) => {
         },
       );
     } else {
-      res.status(404).json({
+      return res.status(404).send({
         errorMessage: '잘못된 요청입니다.',
       });
     }
-    res.status(201).json({
+    return res.status(201).send({
       success: true,
     });
-    return;
   } catch (error) {
-    res.status(400).json({
+    return res.status(400).send({
       success: false,
     });
   }
@@ -59,17 +58,17 @@ router.delete('/:d_No', auth, async (req, res) => {
     if (db.length > 0) {
       await Delivery.deleteOne({ u_Idx, d_No });
     } else {
-      res.status(404).json({
+      return res.status(404).send({
         errorMessage: '잘못된 요청입니다.',
       });
     }
-    res.status(200).json({
+    return res.status(200).send({
       success: true,
       message: 'delete success',
     });
-    return;
   } catch (error) {
-    res.status(400).json({
+    console.log(error);
+    return res.status(400).send({
       success: false,
     });
   }

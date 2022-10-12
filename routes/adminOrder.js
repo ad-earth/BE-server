@@ -10,8 +10,7 @@ const auth = require('../middlewares/admin-middleware');
 /** 배송조회 */
 router.get('/', auth, async (req, res) => {
   try {
-    let { page, maxpost } = req.query;
-    let { date, p_Name, o_Status } = req.body;
+    let { page, maxpost, date, p_Name, o_Status } = req.query;
 
     /** token */
     const { admin } = res.locals;
@@ -33,10 +32,10 @@ router.get('/', auth, async (req, res) => {
     let end = '';
     let objFind = {};
 
-    if (p_Name == undefined && o_Status == undefined && date != undefined) {
+    if (p_Name == 'null' && o_Status == 'null' && date != 'null') {
       /** date */
-      start = new Date(date[0]);
-      endDate = new Date(date[1]);
+      start = new Date(date.substring(1, 11));
+      endDate = new Date(date.substring(12, 22));
       end = new Date(endDate);
       end.setDate(endDate.getDate() + 1);
 
@@ -44,34 +43,22 @@ router.get('/', auth, async (req, res) => {
         o_Date: { $gte: start, $lte: end },
         a_Idx: a_Idx,
       };
-    } else if (
-      p_Name != undefined &&
-      o_Status == undefined &&
-      date == undefined
-    ) {
+    } else if (p_Name != 'null' && o_Status == 'null' && date == 'null') {
       /** p_Name */
       objFind = {
         'products.p_Name': p_Name,
         a_Idx: a_Idx,
       };
-    } else if (
-      p_Name == undefined &&
-      o_Status != undefined &&
-      date == undefined
-    ) {
+    } else if (p_Name == 'null' && o_Status != 'null' && date == 'null') {
       /** o_Status */
       objFind = {
         o_Status: o_Status,
         a_Idx: a_Idx,
       };
-    } else if (
-      p_Name != undefined &&
-      o_Status == undefined &&
-      date != undefined
-    ) {
+    } else if (p_Name != 'null' && o_Status == 'null' && date != 'null') {
       /** date, p_Name */
-      start = new Date(date[0]);
-      endDate = new Date(date[1]);
+      start = new Date(date.substring(1, 11));
+      endDate = new Date(date.substring(12, 22));
       end = new Date(endDate);
       end.setDate(endDate.getDate() + 1);
 
@@ -80,14 +67,10 @@ router.get('/', auth, async (req, res) => {
         'products.p_Name': p_Name,
         a_Idx: a_Idx,
       };
-    } else if (
-      p_Name == undefined &&
-      o_Status != undefined &&
-      date != undefined
-    ) {
+    } else if (p_Name == 'null' && o_Status != 'null' && date != 'null') {
       /** date, o_Status */
-      start = new Date(date[0]);
-      endDate = new Date(date[1]);
+      start = new Date(date.substring(1, 11));
+      endDate = new Date(date.substring(12, 22));
       end = new Date(endDate);
       end.setDate(endDate.getDate() + 1);
 
@@ -96,25 +79,17 @@ router.get('/', auth, async (req, res) => {
         o_Status: o_Status,
         a_Idx: a_Idx,
       };
-    } else if (
-      p_Name != undefined &&
-      o_Status != undefined &&
-      date == undefined
-    ) {
+    } else if (p_Name != 'null' && o_Status != 'null' && date == 'null') {
       /** p_Name, o_Status */
       objFind = {
         o_Status: o_Status,
         'products.p_Name': p_Name,
         a_Idx: a_Idx,
       };
-    } else if (
-      p_Name != undefined &&
-      o_Status != undefined &&
-      date != undefined
-    ) {
+    } else if (p_Name != 'null' && o_Status != 'null' && date != 'null') {
       /** date, p_Name, o_Status */
-      start = new Date(date[0]);
-      endDate = new Date(date[1]);
+      start = new Date(date.substring(1, 11));
+      endDate = new Date(date.substring(12, 22));
       end = new Date(endDate);
       end.setDate(endDate.getDate() + 1);
 
@@ -137,17 +112,6 @@ router.get('/', auth, async (req, res) => {
       .limit(maxpost)
       .skip(skipCnt);
 
-    /** o_Status = '배송완료' 총 판매 금액 */
-    let amount = await AdminOrder.find(objFind);
-    let totalPrice = 0;
-    for (let d in amount) {
-      if (amount[d].o_Status == '배송완료') {
-        totalPrice += amount[d].products.p_Price;
-      } else {
-        continue;
-      }
-    }
-
     /** data 가공  */
     let list = [];
     let objProd = {};
@@ -157,6 +121,7 @@ router.get('/', auth, async (req, res) => {
       objDate = objDate.toISOString().replace('T', ' ').substring(0, 10);
 
       objProd = {
+        id: skipCnt + 1 + Number(c),
         o_No: arrProd[c].o_No,
         p_No: arrProd[c].p_No,
         p_Name: arrProd[c].products.p_Name,
@@ -176,13 +141,13 @@ router.get('/', auth, async (req, res) => {
       list.push(objProd);
     }
 
-    res.status(200).json({
+    return res.status(200).send({
       cnt,
-      totalPrice,
       list,
     });
   } catch (error) {
-    res.status(400).json({
+    console.log(error);
+    return res.status(400).send({
       success: false,
     });
   }
@@ -293,12 +258,12 @@ router.put('/', auth, async (req, res) => {
       }
     }
 
-    return res.status(201).json({
+    return res.status(201).send({
       success: true,
     });
   } catch (error) {
     console.log(error);
-    return res.status(400).json({
+    return res.status(400).send({
       success: false,
     });
   }

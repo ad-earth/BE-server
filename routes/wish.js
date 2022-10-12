@@ -30,12 +30,13 @@ router.post('/:p_No', auth, async (req, res) => {
     /** 조건문 통과한 p_Like 수정 */
     await Product.updateOne({ p_No }, { $set: { p_Like: cnt } });
 
-    res.status(201).send({
+    return res.status(201).send({
       success: true,
       message: 'wish success',
     });
   } catch (error) {
-    res.status(400).json({
+    console.log(error);
+    return res.status(400).send({
       success: false,
     });
   }
@@ -46,8 +47,10 @@ router.get('/', auth, async (req, res) => {
   try {
     let { page, maxpost } = req.query;
 
+    page = Number(page);
+    maxpost = Number(maxpost);
+
     /** maxpost 수만큼 page 처리 */
-    Number(page, maxpost);
     let skipCnt = 0;
     page == 1 ? (skipCnt = 0) : (skipCnt = page * maxpost - maxpost);
 
@@ -55,7 +58,9 @@ router.get('/', auth, async (req, res) => {
     const { user } = res.locals;
     const u_Idx = user.u_Idx;
 
+    /** 전체 게시물 수 */
     let cnt = await Wish.find({ u_Idx }).count();
+
     let db = await Wish.find({ u_Idx }).limit(maxpost).skip(skipCnt);
 
     let wishList = [];
@@ -89,13 +94,13 @@ router.get('/', auth, async (req, res) => {
       wishList[y].p_Thumbnail = wishList[y].p_Thumbnail.slice(0, 1);
     }
 
-    res.status(200).json({
+    return res.status(200).send({
       cnt,
       wishList,
     });
   } catch (error) {
     console.log(error);
-    res.status(400).json({
+    return res.status(400).send({
       success: false,
     });
   }

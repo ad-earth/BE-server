@@ -20,34 +20,15 @@ router.post('/', auth, async (req, res) => {
     }
 
     await Cart.create({ u_Idx, cartList });
-    return res.status(201).json({
+    return res.status(201).send({
       success: true,
       message: 'post success',
     });
   } catch (error) {
-    return res.status(400).json({
+    console.log(error);
+    return res.status(400).send({
       success: false,
       errorMessage: '장바구니 등록 실패',
-    });
-  }
-});
-
-/** 장바구니 조회 */
-router.get('/', auth, async (req, res) => {
-  try {
-    /** token */
-    const { user } = res.locals;
-    const u_Idx = user.u_Idx;
-
-    let cartList = await Cart.find(
-      { u_Idx },
-      { _id: 0, __v: 0, u_Idx: 0 },
-    ).exec();
-
-    return res.status(200).json(cartList[0]);
-  } catch (error) {
-    return res.status(400).json({
-      success: false,
     });
   }
 });

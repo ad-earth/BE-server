@@ -13,14 +13,15 @@ const jwtKey = process.env.U_TOKEN;
 
 /** 상품 정보 조회 */
 router.get('/:p_No', async (req, res) => {
-  const { p_No } = req.params;
-  const { keyword } = req.query;
+  let { p_No } = req.params;
+  let { keyword } = req.query;
+
+  p_No = Number(p_No);
 
   let k_No = 0;
   if (keyword) {
-    // db.expense 현재 키워드, 키워드번호, 입찰금 생성 및 charge 금액 차감
-    // keyword db의 현재 키워드 클릭수 +1
-    // 키워드 번호
+    /** db.expense 현재 키워드, 키워드번호, 입찰금 생성 및 charge 금액 차감 */
+    /** keyword db의 현재 키워드 클릭수 +1 */
     let keywordData = await Keyword.findOne({ p_No, keyword }).exec();
     await Keyword.updateOne(
       { p_No, keyword },
@@ -87,13 +88,14 @@ router.get('/:p_No', async (req, res) => {
       product.p_Best = false;
     }
 
-    res.status(200).json({
+    return res.status(200).send({
       userLike: userLike,
       k_No,
       product,
     });
   } catch (error) {
-    res.status(400).json({
+    console.log(error);
+    return res.status(400).send({
       success: false,
     });
   }

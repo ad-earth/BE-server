@@ -33,12 +33,12 @@ router.get('/', auth, async (req, res) => {
       { _id: 0, __v: 0 },
     ).exec();
 
-    res.status(200).json({
+    return res.status(200).send({
       userInfo,
       addressList,
     });
   } catch (error) {
-    res.status(400).json({
+    return res.status(400).send({
       success: false,
     });
   }
@@ -47,10 +47,11 @@ router.get('/', auth, async (req, res) => {
 /** 결제하기 주문완료 */
 router.post('/complete', auth, async (req, res) => {
   try {
+    let { address, products, o_Price } = req.body;
+
     /** token */
     const { user } = res.locals;
     const u_Idx = user.u_Idx;
-    let { address, products, o_Price } = req.body;
 
     /** 해당 상품의 p_Status = false이거나 p_Soldout = true 면 결제 불가*/
     for (let i in products) {
@@ -60,10 +61,9 @@ router.post('/complete', auth, async (req, res) => {
       );
 
       if (status.p_Soldout == true || status.p_Status == false) {
-        res.status(404).json({
+        return res.status(404).send({
           errorMessage: `해당 ${status.p_Name} 상품은 현재 구매 불가능한 상품입니다.`,
         });
-        return;
       }
     }
 
@@ -151,13 +151,6 @@ router.post('/complete', auth, async (req, res) => {
       products[x].r_Status = false;
     }
 
-    /** 주문자 번호 확인 및 생성 (보류) */
-    // const recentNo = await Order.find().sort('-o_No').limit(1);
-    // let o_No = 10001;
-    // if (recentNo.length !== 0) {
-    //   o_No = recentNo[0]['o_No'] + 1;
-    // }
-
     let o_No = new Date().valueOf();
 
     /** 날짜 생성 */
@@ -192,13 +185,13 @@ router.post('/complete', auth, async (req, res) => {
       });
     }
 
-    res.status(201).json({
+    return res.status(201).send({
       success: true,
       message: 'post success',
     });
   } catch (error) {
     console.log(error);
-    res.status(400).json({
+    return res.status(400).send({
       success: false,
       errorMessage: '결제 실패',
     });
@@ -229,9 +222,9 @@ router.get('/complete', auth, async (req, res) => {
       d_Address3: orders.address.d_Address3,
     };
 
-    res.status(200).json(result);
+    return res.status(200).send(result);
   } catch (error) {
-    res.status(400).json({
+    return res.status(400).send({
       success: false,
     });
   }

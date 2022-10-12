@@ -40,6 +40,8 @@ const cancelRouter = require('./routes/cancel');
 const adminOrderRouter = require('./routes/adminOrder');
 const prodReportRouter = require('./routes/prodReport');
 const keywordReportRouter = require('./routes/keywordReport');
+const adminMainRouter = require('./routes/adminMain');
+const adKeywordRouter = require('./routes/adKeyword');
 
 /** DB */
 const connect = require('./schemas');
@@ -47,8 +49,8 @@ connect();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-// app.use(morgan('combined')); // 배포
-app.use(morgan('dev'));
+app.use(morgan('combined')); // 배포
+// app.use(morgan('dev'));
 
 app.get('/', (req, res) => {
   res.send('This is server of adEarth');
@@ -93,6 +95,16 @@ app.use(
   '/ad-report',
   express.urlencoded({ extended: false }),
   keywordReportRouter,
+);
+app.use(
+  '/admin-main',
+  express.urlencoded({ extended: false }),
+  adminMainRouter,
+);
+app.use(
+  '/ad-keyword',
+  express.urlencoded({ extended: false }),
+  adKeywordRouter,
 );
 
 module.exports = app;

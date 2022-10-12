@@ -11,6 +11,8 @@ const dotenv = require('dotenv');
 dotenv.config();
 const jwtKey = process.env.U_TOKEN;
 
+const reg = /^\d{3}-\d{3,4}-\d{4}$/;
+
 /** 회원가입 검증 */
 const registerSchema = Joi.object({
   u_Id: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{5,10}$')).required(),
@@ -21,9 +23,7 @@ const registerSchema = Joi.object({
       ),
     )
     .required(),
-  u_Phone: Joi.string()
-    .pattern(new RegExp('^01([0|1|6|7|8|9])-?([0-9]{3,4})-?([0-9]{4})$'))
-    .required(),
+  u_Phone: Joi.string().pattern(reg).required(),
   u_Name: Joi.string().required(),
   u_Gender: Joi.string().required(),
   u_Address1: Joi.string().required(),
@@ -56,18 +56,16 @@ router.post('/register', async (req, res) => {
     /** 아이디 중복 확인 */
     const userId = await User.find({ u_Id: u_Id }).exec();
     if (userId.length !== 0) {
-      res.status(400).json({
+      return res.status(400).send({
         errorMessage: '중복된 아이디입니다.',
       });
-      return;
     }
     /** 연락처 중복 확인 */
     const userPhone = await User.find({ u_Phone: u_Phone }).exec();
     if (userPhone.length !== 0) {
-      res.status(400).json({
+      return res.status(400).send({
         errorMessage: '중복된 연락처입니다.',
       });
-      return;
     }
 
     /** 비밀번호 hash 처리 */
@@ -92,13 +90,13 @@ router.post('/register', async (req, res) => {
       createdAt,
     });
 
-    res.status(201).send({
+    return res.status(201).send({
       success: true,
       message: 'post success',
     });
   } catch (error) {
     console.log(error);
-    res.status(400).json({
+    return res.status(400).send({
       success: false,
       errorMessage: '요청한 데이터 형식이 올바르지 않습니다.',
     });
@@ -108,9 +106,7 @@ router.post('/register', async (req, res) => {
 /** 아이디 검증 */
 const findIdSchema = Joi.object({
   u_Name: Joi.string().required(),
-  u_Phone: Joi.string()
-    .pattern(new RegExp('^01([0|1|6|7|8|9])-?([0-9]{3,4})-?([0-9]{4})$'))
-    .required(),
+  u_Phone: Joi.string().pattern(reg).required(),
 });
 /** 아이디 찾기 */
 router.get('/find-id', async (req, res) => {
@@ -119,19 +115,19 @@ router.get('/find-id', async (req, res) => {
     const userName = await User.find({ u_Name: u_Name }).exec();
     const userPhone = await User.find({ u_Phone: u_Phone }).exec();
     if (userName.length === 0 || userPhone.length === 0) {
-      res.status(400).send({
+      return res.status(400).send({
         errorMessage: '존재하지 않는 회원입니다.',
       });
-      return;
     }
     let data = await User.findOne(
       { u_Name, u_Phone },
       { _id: 0, u_Id: 1 },
     ).exec();
 
-    res.status(200).send(data);
+    return res.status(200).send(data);
   } catch (error) {
-    res.status(400).json({
+    console.log(error);
+    return res.status(400).send({
       success: false,
       errorMessage: '요청한 데이터 형식이 올바르지 않습니다.',
     });
@@ -141,9 +137,7 @@ router.get('/find-id', async (req, res) => {
 /** 비밀번호 찾기 1차 검증 */
 const findPwSchema = Joi.object({
   u_Id: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{5,10}$')).required(),
-  u_Phone: Joi.string()
-    .pattern(new RegExp('^01([0|1|6|7|8|9])-?([0-9]{3,4})-?([0-9]{4})$'))
-    .required(),
+  u_Phone: Joi.string().pattern(reg).required(),
   u_Name: Joi.string().required(),
 });
 
@@ -157,24 +151,23 @@ router.get('/find-password', async (req, res) => {
     const userName = await User.find({ u_Name: u_Name }).exec();
     const userPhone = await User.find({ u_Phone: u_Phone }).exec();
     if (userId.length == 0 || userName.length == 0 || userPhone.length == 0) {
-      res.status(400).send({
+      return res.status(400).send({
         errorMessage: '존재하지 않는 회원입니다.',
       });
-      return;
     }
     let data = await User.findOne(
       { u_Name, u_Phone, u_Id },
       { _id: 0, u_Idx: 1 },
     ).exec();
     if (data == null) {
-      res.status(400).send({
+      return res.status(400).send({
         errorMessage: '존재하지 않는 회원입니다.',
       });
-      return;
     }
-    res.status(200).send(data);
+    return res.status(200).send(data);
   } catch (error) {
-    res.status(400).json({
+    console.log(error);
+    return res.status(400).send({
       success: false,
       errorMessage: '요청한 데이터 형식이 올바르지 않습니다.',
     });
@@ -200,24 +193,22 @@ router.put('/reset-password', async (req, res) => {
     /** 존재하는 유저인가 확인 */
     const userNo = await User.find({ u_Idx }).exec();
     if (userNo.length === 0) {
-      res.status(400).send({
+      return res.status(400).send({
         errorMessage: '존재하지 않는 회원입니다.',
       });
-      return;
     }
     const salt = await bcrypt.genSalt();
     const hashPw = await bcrypt.hash(u_Pw, salt);
     await User.updateOne({ u_Idx }, { $set: { u_Pw: hashPw } });
-    res.status(201).send({
+    return res.status(201).send({
       success: true,
     });
-    return;
   } catch (error) {
-    res.status(400).send({
+    console.log(error);
+    return res.status(400).send({
       success: false,
       errorMessage: '요청한 데이터 형식이 올바르지 않습니다.',
     });
-    return;
   }
 });
 
@@ -239,11 +230,11 @@ router.post('/login', async (req, res) => {
     const { u_Id, u_Pw } = await loginSchema.validateAsync(req.body);
     const user = await User.findOne({ u_Id }).exec();
     if (!user) {
-      res.status(400).send({
+      return res.status(400).send({
         errorMessage: '아이디 또는 비밀번호를 확인해주세요',
       });
-      return;
     }
+
     let u_Idx = user.u_Idx;
     let u_Name = user.u_Name;
     let u_Address1 = user.u_Address1;
@@ -277,24 +268,27 @@ router.post('/login', async (req, res) => {
         { _id: 0, __v: 0, u_Idx: 0 },
       ).exec();
 
-      let cartList = getList[0].cartList;
+      let cartList = [];
+      if (getList.length == 0) {
+        cartList = [];
+      } else {
+        cartList = getList[0].cartList;
+      }
 
-      res.status(200).send({
+      return res.status(200).send({
         userInfo,
         cartList,
       });
-      return;
     } else {
-      res.status(401).send({
+      return res.status(401).send({
         errorMessage: '아이디 또는 비밀번호를 확인해주세요',
       });
-      return;
     }
   } catch (error) {
-    res.status(400).send({
+    console.log(error);
+    return res.status(400).send({
       errorMessage: '입력한 내용을 다시 확인해주세요',
     });
-    return;
   }
 });
 
@@ -329,18 +323,18 @@ router.put('/', authMiddleware, async (req, res) => {
         },
       },
     );
-    res.status(201).send({
+    return res.status(201).send({
       success: true,
     });
-    return;
   } catch (error) {
-    res.status(400).send({
+    console.log(error);
+    return res.status(400).send({
       errorMessage: '수정 중 오류 발생',
     });
   }
 });
 
-/** 정보 삭제 */
+/** 회원탈퇴 */
 router.delete('/', authMiddleware, async (req, res) => {
   try {
     /** token */
@@ -348,12 +342,12 @@ router.delete('/', authMiddleware, async (req, res) => {
     const u_Idx = user.u_Idx;
 
     await User.deleteOne({ u_Idx });
-    res.status(200).send({
+    return res.status(200).send({
       success: true,
     });
-    return;
   } catch (error) {
-    res.status(400).send({
+    console.log(error);
+    return res.status(400).send({
       errorMessage: '삭제 중 오류 발생',
     });
   }

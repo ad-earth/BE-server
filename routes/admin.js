@@ -2,6 +2,10 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 const Admin = require('../schemas/admins');
+const AdminOrder = require('../schemas/adminOrders');
+const Product = require('../schemas/products');
+const Keyword = require('../schemas/keywords');
+const Wish = require('../schemas/wishes');
 const bcrypt = require('bcryptjs');
 const auth = require('../middlewares/admin-middleware');
 const Joi = require('joi');
@@ -9,6 +13,8 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 const jwtKey = process.env.A_TOKEN;
+
+const reg = /^\d{3}-\d{3,4}-\d{4}$/;
 
 /** 회원가입 검증 */
 const registerSchema = Joi.object({
@@ -22,9 +28,7 @@ const registerSchema = Joi.object({
     .required(),
   a_Brand: Joi.string().required(),
   a_Number: Joi.string().required(),
-  a_Phone: Joi.string()
-    .pattern(new RegExp('^01([0|1|6|7|8|9])-?([0-9]{3,4})-?([0-9]{4})$'))
-    .required(),
+  a_Phone: Joi.string().pattern(reg).required(),
 });
 
 /** 회원가입 */
@@ -43,28 +47,25 @@ router.post('/register', async (req, res) => {
     /** 아이디 중복 확인 */
     const adminId = await Admin.find({ a_Id: a_Id }).exec();
     if (adminId.length !== 0) {
-      res.status(400).send({
+      return res.status(400).send({
         errorMessage: '중복된 아이디입니다.',
       });
-      return;
     }
 
     /** 연락처 중복 확인 */
     const adminPhone = await Admin.find({ a_Phone: a_Phone }).exec();
     if (adminPhone.length !== 0) {
-      res.status(400).send({
+      return res.status(400).send({
         errorMessage: '중복된 연락처입니다.',
       });
-      return;
     }
 
     /** 사업자번호 중복 확인 */
     const adminNumber = await Admin.find({ a_Number: a_Number }).exec();
     if (adminNumber.length !== 0) {
-      res.status(400).send({
+      return res.status(400).send({
         errorMessage: '중복된 사업자번호입니다.',
       });
-      return;
     }
 
     /** 비밀번호 hash 처리 */
@@ -85,11 +86,12 @@ router.post('/register', async (req, res) => {
       createdAt,
     });
 
-    res.status(201).send({
+    return res.status(201).send({
       success: true,
     });
   } catch (error) {
-    res.status(400).send({
+    console.log(error);
+    return res.status(400).send({
       success: false,
       errorMessage: '요청한 데이터 형식이 올바르지 않습니다.',
     });
@@ -105,24 +107,24 @@ const findIdSchema = Joi.object({
 /** 아이디 찾기 */
 router.get('/find-id', async (req, res) => {
   try {
-    const { a_Brand, a_Number } = await findIdSchema.validateAsync(req.body);
+    const { a_Brand, a_Number } = await findIdSchema.validateAsync(req.query);
     const adminBrand = await Admin.find({ a_Brand: a_Brand }).exec();
     const adminNumber = await Admin.find({ a_Number: a_Number }).exec();
 
     if (adminBrand.length === 0 || adminNumber.length === 0) {
-      res.status(400).send({
+      return res.status(400).send({
         errorMessage: '존재하지 않는 회원입니다.',
       });
-      return;
     }
     let data = await Admin.findOne(
       { a_Brand, a_Number },
       { _id: 0, a_Id: 1 },
     ).exec();
 
-    res.status(200).send(data);
+    return res.status(200).send(data);
   } catch (error) {
-    res.status(400).json({
+    console.log(error);
+    return res.status(400).json({
       success: false,
       errorMessage: '요청한 데이터 형식이 올바르지 않습니다.',
     });
@@ -132,46 +134,38 @@ router.get('/find-id', async (req, res) => {
 /** 비밀번호 찾기 1차 검증 */
 const findPwSchema = Joi.object({
   a_Id: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{5,10}$')).required(),
-  a_Brand: Joi.string().required(),
   a_Number: Joi.string().required(),
 });
 
 /** 비밀번호 찾기 1차 */
 router.get('/find-password', async (req, res) => {
   try {
-    const { a_Id, a_Brand, a_Number } = await findPwSchema.validateAsync(
-      req.body,
-    );
+    const { a_Id, a_Number } = await findPwSchema.validateAsync(req.query);
 
     const adminId = await Admin.find({ a_Id: a_Id }).exec();
-    const adminBrand = await Admin.find({ a_Brand: a_Brand }).exec();
     const adminNumber = await Admin.find({ a_Number: a_Number }).exec();
 
-    if (
-      adminId.length == 0 ||
-      adminBrand.length == 0 ||
-      adminNumber.length == 0
-    ) {
-      res.status(400).send({
+    if (adminId.length == 0 || adminNumber.length == 0) {
+      return res.status(400).send({
         errorMessage: '존재하지 않는 회원입니다.',
       });
-      return;
     }
 
     let data = await Admin.findOne(
-      { a_Id, a_Brand, a_Number },
+      { a_Id, a_Number },
       { _id: 0, a_Idx: 1 },
     ).exec();
 
     if (data == null) {
-      res.status(400).send({
+      return res.status(400).send({
         errorMessage: '존재하지 않는 회원입니다.',
       });
-      return;
     }
-    res.status(200).send(data);
+
+    return res.status(200).send(data);
   } catch (error) {
-    res.status(400).json({
+    console.log(error);
+    return res.status(400).send({
       success: false,
       errorMessage: '요청한 데이터 형식이 올바르지 않습니다.',
     });
@@ -198,10 +192,9 @@ router.put('/reset-password', async (req, res) => {
     /** 존재하는 유저인가 확인 */
     const adminNo = await Admin.find({ a_Idx }).exec();
     if (adminNo.length === 0) {
-      res.status(400).send({
+      return res.status(400).send({
         errorMessage: '존재하지 않는 회원입니다.',
       });
-      return;
     }
 
     /** 비밀번호 hash 처리 */
@@ -209,16 +202,16 @@ router.put('/reset-password', async (req, res) => {
     const hashPw = await bcrypt.hash(a_Pw, salt);
 
     await Admin.updateOne({ a_Idx }, { $set: { a_Pw: hashPw } });
-    res.status(201).send({
+
+    return res.status(201).send({
       success: true,
     });
-    return;
   } catch (error) {
-    res.status(400).send({
+    console.log(error);
+    return res.status(400).send({
       success: false,
       errorMessage: '요청한 데이터 형식이 올바르지 않습니다.',
     });
-    return;
   }
 });
 
@@ -238,13 +231,15 @@ const loginSchema = Joi.object({
 router.post('/login', async (req, res) => {
   try {
     const { a_Id, a_Pw } = await loginSchema.validateAsync(req.body);
+
     const admin = await Admin.findOne({ a_Id }).exec();
+
     if (!admin) {
-      res.status(400).send({
+      return res.status(400).send({
         errorMessage: '아이디 또는 비밀번호를 확인해주세요',
       });
-      return;
     }
+
     let a_Brand = admin.a_Brand;
 
     /** 비밀번호 매치 검사 */
@@ -254,22 +249,20 @@ router.post('/login', async (req, res) => {
       /** 비밀번호 일치하면 토큰 생성 */
       const token = jwt.sign({ a_Idx: admin.a_Idx }, jwtKey);
 
-      res.status(200).send({
+      return res.status(200).send({
         a_Brand,
         token,
       });
-      return;
     } else {
-      res.status(401).send({
+      return res.status(401).send({
         errorMessage: '아이디 또는 비밀번호를 확인해주세요',
       });
-      return;
     }
   } catch (error) {
-    res.status(400).send({
+    console.log(error);
+    return res.status(400).send({
       errorMessage: '입력한 내용을 다시 확인해주세요',
     });
-    return;
   }
 });
 
@@ -280,45 +273,38 @@ router.delete('/', auth, async (req, res) => {
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
 
-    /** 배송 관리에 신규주문 상품 있으면 false */
-    /** 등록한 상품도 같이 삭제 */
+    const prodData = await Product.find({ a_Idx }, { _id: 0, p_No: 1 });
 
+    /** 배송 관리에 신규주문 상품 있으면 false */
+    const orderData = await AdminOrder.find({
+      a_Idx,
+      o_Status: '신규주문',
+    }).exec();
+    if (orderData.length != null) {
+      return res.status(400).send({
+        errorMessage: '신규주문이 존재합니다.',
+      });
+    } else {
+      for (let i in prodData) {
+        /** 위시리스트 삭제 */
+        await Wish.deleteOne({ p_No: prodData[i].p_No });
+      }
+      /** 상품 삭제 */
+      await Product.deleteMany({ a_Idx });
+      /** 키워드 삭제 */
+      await Keyword.deleteMany({ a_Idx });
+    }
+    /** 회원 삭제 */
     await Admin.deleteOne({ a_Idx });
-    res.status(200).send({
+
+    return res.status(200).send({
       success: true,
     });
-    return;
   } catch (error) {
-    res.status(400).send({
+    console.log(error);
+    return res.status(400).send({
       errorMessage: '삭제 중 오류 발생',
     });
-  }
-});
-
-/** 광고비 충전 */
-router.put('/charge', auth, async (req, res) => {
-  try {
-    /** token */
-    const { admin } = res.locals;
-    const a_Idx = admin.a_Idx;
-
-    const db = await Admin.findOne({ a_Idx }, { _id: 0, a_Charge: 1 }).exec();
-
-    let charge = db.a_Charge + 10000;
-
-    /** 일 한도 20만원 제한 */
-
-    await Admin.updateOne({ a_Idx }, { $set: { a_Charge: charge } });
-    res.status(201).send({
-      success: true,
-    });
-    return;
-  } catch (error) {
-    res.status(400).send({
-      success: false,
-      errorMessage: '요청한 데이터 형식이 올바르지 않습니다.',
-    });
-    return;
   }
 });
 

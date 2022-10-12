@@ -6,7 +6,7 @@ const SalesProduct = require('../schemas/salesProducts');
 /** 상품 보고서 */
 router.get('/', auth, async (req, res) => {
   try {
-    let { date, p_Category } = req.body;
+    let { date, p_Category } = req.query;
 
     /** token */
     const { admin } = res.locals;
@@ -19,7 +19,7 @@ router.get('/', auth, async (req, res) => {
     let end = '';
     let objMatch = {};
 
-    if (date == undefined && p_Category == undefined) {
+    if (date == 'null' && p_Category == 'null') {
       /** 현재 시간 */
       let now = new Date(+new Date() + 3240 * 10000)
         .toISOString()
@@ -36,21 +36,21 @@ router.get('/', auth, async (req, res) => {
       end.setDate(endDate.getDate());
 
       objMatch = { a_Idx, createdAt: { $gte: start, $lte: end } };
-    } else if (date == undefined && p_Category != undefined) {
+    } else if (date == 'null' && p_Category != 'null') {
       // p_Category
       objMatch = { a_Idx, p_Category };
-    } else if (date != undefined && p_Category == undefined) {
+    } else if (date != 'null' && p_Category == 'null') {
       // date
-      start = new Date(date[0]);
-      endDate = new Date(date[1]);
+      start = new Date(date.substring(1, 11));
+      endDate = new Date(date.substring(12, 22));
       end = new Date(endDate);
       end.setDate(endDate.getDate() + 1);
 
       objMatch = { a_Idx, createdAt: { $gte: start, $lte: end } };
     } else {
       // p_Category, date
-      start = new Date(date[0]);
-      endDate = new Date(date[1]);
+      start = new Date(date.substring(1, 11));
+      endDate = new Date(date.substring(12, 22));
       end = new Date(endDate);
       end.setDate(endDate.getDate() + 1);
 
@@ -87,14 +87,14 @@ router.get('/', auth, async (req, res) => {
     /** 전체 수 */
     let cnt = products.length;
 
-    res.status(200).json({
+    return res.status(200).send({
       cnt,
       totalPrice,
       products,
     });
   } catch (error) {
     console.log(error);
-    res.status(400).json({
+    return res.status(400).send({
       success: false,
     });
   }

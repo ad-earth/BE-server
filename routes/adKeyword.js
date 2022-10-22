@@ -13,7 +13,7 @@ router.get('/', auth, async (req, res) => {
 
     /** 내 상품 제외하고 광고중인 키워드 있는지 확인 */
     let findKeyword = await Keyword.find(
-      { keyword, k_Status: 'on', p_No: { $ne: p_No } },
+      { keyword, k_Status: true, p_No: { $ne: p_No } },
       { _id: 0, __v: 0, createdAt: 0 },
     ).exec();
 
@@ -47,9 +47,10 @@ router.get('/', auth, async (req, res) => {
         }
       }
     }
+    let levelCost = k_Cost;
 
     return res.status(200).send({
-      k_Cost,
+      levelCost,
     });
   } catch (error) {
     console.log(error);

@@ -49,6 +49,28 @@ router.post('/complete', auth, async (req, res) => {
   try {
     let { address, products, o_Price } = req.body;
 
+    /** indexedDb 변수명 처리 */
+    let objProductData = {};
+    let arrProductData = [];
+    for (let w in products) {
+      objProductData = {
+        k_No: products[w].keywordNo,
+        p_No: products[w].id,
+        p_Thumbnail: [products[w].thumbnail],
+        p_Category: products[w].category,
+        a_Brand: products[w].brand,
+        p_Name: products[w].name,
+        p_Cost: products[w].price,
+        p_Discount: products[w].discount,
+        p_Option: products[w].option,
+        p_Price: products[w].totalPrice,
+        p_Cnt: products[w].totalCnt,
+      };
+      arrProductData.push(objProductData);
+    }
+
+    products = arrProductData;
+
     /** token */
     const { user } = res.locals;
     const u_Idx = user.u_Idx;

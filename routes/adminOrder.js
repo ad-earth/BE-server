@@ -4,6 +4,7 @@ const AdminOrder = require('../schemas/adminOrders');
 const SalesProduct = require('../schemas/salesProducts');
 const SalesKeyword = require('../schemas/salesKeywords');
 const Order = require('../schemas/orders');
+const Product = require('../schemas/products');
 const Keyword = require('../schemas/keywords');
 const auth = require('../middlewares/admin-middleware');
 
@@ -230,6 +231,25 @@ router.put('/', auth, async (req, res) => {
         p_Price: prodInfo.products.p_Price,
         createdAt: createdAt,
       });
+
+      let infoProd = await Product.findOne(
+        { p_No: confirm[d].p_No },
+        { _id: 0, p_Price: 1, p_Cnt: 1 },
+      );
+
+      /** 상품 누적 판매 금액, 수량 업데이트 */
+      let prodPrice = infoProd.p_Price + prodInfo.products.p_Price;
+      let prodCnt = infoProd.p_Cnt + prodInfo.products.p_Cnt;
+
+      let prodInfoUpdate = await Product.updateOne(
+        { p_No: confirm[d].p_No },
+        {
+          $set: {
+            p_Price: prodPrice,
+            p_Cnt: prodCnt,
+          },
+        },
+      );
     }
 
     /** salesKeyword 전환내역 생성 */
@@ -239,7 +259,12 @@ router.put('/', auth, async (req, res) => {
         p_No: confirm[e].p_No,
       }).exec();
 
-      if (findKeywordInfo.products.k_No != null) {
+      if (
+        findKeywordInfo.products.k_No == null ||
+        findKeywordInfo.products.k_No == 0
+      ) {
+        continue;
+      } else {
         let keywordInfo = await Keyword.findOne({
           p_No: findKeywordInfo.p_No,
           k_No: findKeywordInfo.products.k_No,
@@ -253,8 +278,6 @@ router.put('/', auth, async (req, res) => {
           p_Price: findKeywordInfo.products.p_Price,
           createdAt: createdAt,
         });
-      } else {
-        continue;
       }
     }
 

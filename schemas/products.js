@@ -16,7 +16,7 @@ const ProductSchema = new Schema({
   p_Discount: { type: Number, default: 0 },
   p_Option: { type: Array, default: null },
   p_Desc: { type: String, required: true },
-  p_Content: { type: String, required: true },
+  p_Content: { type: String },
   p_Soldout: { type: Boolean, default: false },
   p_New: { type: Boolean, default: true },
   p_Best: { type: Boolean, default: false },

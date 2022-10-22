@@ -12,7 +12,7 @@ const KeywordSchema = new Schema({
   k_Level: { type: Number, default: 5 },
   k_Cost: { type: Number, default: 0 },
   k_Click: { type: Number, default: 0 },
-  k_Status: { type: String, required: true },
+  k_Status: { type: Boolean, required: true },
   createdAt: { type: Date, required: true },
 });
 

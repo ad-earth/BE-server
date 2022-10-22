@@ -280,9 +280,10 @@ router.delete('/', auth, async (req, res) => {
       a_Idx,
       o_Status: '신규주문',
     }).exec();
-    if (orderData.length != null) {
+
+    if (orderData.length != 0) {
       return res.status(400).send({
-        errorMessage: '신규주문이 존재합니다.',
+        errorMessage: '신규 주문 건이 남아있으므로 탈퇴할 수 없습니다.',
       });
     } else {
       for (let i in prodData) {

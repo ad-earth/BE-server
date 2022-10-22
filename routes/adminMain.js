@@ -112,15 +112,21 @@ router.get('/popular-keywords', async (req, res) => {
       { $sort: { k_Click: -1 } },
     ]);
     let keywords = [];
-    for (let x in data) {
-      keywords.push(data[x]._id.keyword);
-    }
-    if (keywords.length != 9) {
-      let pushCnt = 10 - keywords.length;
-      for (let y in pushCnt) {
-        keywords.push('null');
+
+    if (data.length == 0) {
+      keywords = ['-', '-', '-', '-', '-', '-', '-', '-', '-', '-'];
+    } else {
+      for (let x in data) {
+        keywords.push(data[x]._id.keyword);
+      }
+      if (keywords.length != 9) {
+        let pushCnt = 10 - keywords.length;
+        for (let y in pushCnt) {
+          keywords.push('-');
+        }
       }
     }
+
     return res.status(200).send({
       keywords,
     });

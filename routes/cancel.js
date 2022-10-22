@@ -22,22 +22,27 @@ router.get('/', auth, async (req, res) => {
     /** 전체 게시물 수 */
     let cnt = await CancelProd.find({ u_Idx }).count();
 
-    let db = await CancelProd.find({ u_Idx }).limit(maxpost).skip(skipCnt);
-    let objList = {};
     let cancelList = [];
-    for (let x in db) {
-      let date = db[x].createdAt
-        .toISOString()
-        .replace('T', ' ')
-        .substring(0, 10);
-      objList = {
-        o_No: db[x].o_No,
-        o_Date: date,
-        o_Price: db[x].o_Price,
-        products: db[x].products,
-      };
-      cancelList.push(objList);
+    if (cnt == 0) {
+      cancelList = [];
+    } else {
+      let db = await CancelProd.find({ u_Idx }).limit(maxpost).skip(skipCnt);
+      let objList = {};
+      for (let x in db) {
+        let date = db[x].createdAt
+          .toISOString()
+          .replace('T', ' ')
+          .substring(0, 10);
+        objList = {
+          o_No: db[x].o_No,
+          o_Date: date,
+          o_Price: db[x].o_Price,
+          products: db[x].products,
+        };
+        cancelList.push(objList);
+      }
     }
+
     return res.status(200).send({
       cnt,
       cancelList,

@@ -22,13 +22,11 @@ router.post('/', auth, async (req, res) => {
     await Cart.create({ u_Idx, cartList });
     return res.status(201).send({
       success: true,
-      message: 'post success',
     });
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: false,
-      errorMessage: '장바구니 등록 실패',
+      success: '잘못된 요청입니다.',
     });
   }
 });

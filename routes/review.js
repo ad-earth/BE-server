@@ -67,13 +67,11 @@ router.post('/:p_No', auth, async (req, res) => {
     }
     return res.status(201).send({
       success: true,
-      message: 'post success',
     });
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: false,
-      errorMessage: '댓글 등록 실패',
+      success: '잘못된 요청입니다.',
     });
   }
 });
@@ -129,7 +127,7 @@ router.get('/:p_No', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: false,
+      success: '잘못된 요청입니다.',
     });
   }
 });
@@ -155,14 +153,13 @@ router.put('/:r_No', auth, async (req, res) => {
       });
     } else {
       return res.status(401).send({
-        success: false,
         errorMessage: '권한 없음',
       });
     }
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: false,
+      success: '잘못된 요청입니다.',
     });
   }
 });
@@ -191,19 +188,17 @@ router.delete('/:r_No', auth, async (req, res) => {
       );
     } else {
       return res.status(401).send({
-        success: false,
         errorMessage: '권한 없음',
       });
     }
     await Review.deleteOne({ r_No });
     return res.status(200).send({
       success: true,
-      message: 'delete success',
     });
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: false,
+      success: '잘못된 요청입니다.',
     });
   }
 });

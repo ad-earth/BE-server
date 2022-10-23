@@ -92,8 +92,7 @@ router.post('/register', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: false,
-      errorMessage: '요청한 데이터 형식이 올바르지 않습니다.',
+      success: '잘못된 요청입니다.',
     });
   }
 });
@@ -125,8 +124,7 @@ router.get('/find-id', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).json({
-      success: false,
-      errorMessage: '요청한 데이터 형식이 올바르지 않습니다.',
+      success: '잘못된 요청입니다.',
     });
   }
 });
@@ -166,8 +164,7 @@ router.get('/find-password', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: false,
-      errorMessage: '요청한 데이터 형식이 올바르지 않습니다.',
+      success: '잘못된 요청입니다.',
     });
   }
 });
@@ -209,8 +206,7 @@ router.put('/reset-password', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: false,
-      errorMessage: '요청한 데이터 형식이 올바르지 않습니다.',
+      success: '잘못된 요청입니다.',
     });
   }
 });
@@ -261,7 +257,7 @@ router.post('/login', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      errorMessage: '입력한 내용을 다시 확인해주세요',
+      success: '잘못된 요청입니다.',
     });
   }
 });
@@ -304,7 +300,7 @@ router.delete('/', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      errorMessage: '삭제 중 오류 발생',
+      success: '잘못된 요청입니다.',
     });
   }
 });

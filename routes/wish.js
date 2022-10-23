@@ -32,12 +32,11 @@ router.post('/:p_No', auth, async (req, res) => {
 
     return res.status(201).send({
       success: true,
-      message: 'wish success',
     });
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: false,
+      success: '잘못된 요청입니다.',
     });
   }
 });
@@ -105,7 +104,7 @@ router.get('/', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: false,
+      success: '잘못된 요청입니다.',
     });
   }
 });

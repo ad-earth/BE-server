@@ -95,7 +95,7 @@ router.get('/:p_No', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: false,
+      success: '잘못된 요청입니다.',
     });
   }
 });

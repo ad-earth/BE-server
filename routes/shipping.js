@@ -38,7 +38,7 @@ router.put('/:d_No', auth, async (req, res) => {
     });
   } catch (error) {
     return res.status(400).send({
-      success: false,
+      success: '잘못된 요청입니다.',
     });
   }
 });
@@ -64,12 +64,11 @@ router.delete('/:d_No', auth, async (req, res) => {
     }
     return res.status(200).send({
       success: true,
-      message: 'delete success',
     });
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: false,
+      success: '잘못된 요청입니다.',
     });
   }
 });

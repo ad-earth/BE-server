@@ -25,7 +25,7 @@ router.get('/new-orders', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(400).send({
-      success: false,
+      success: '잘못된 요청입니다.',
     });
   }
 });
@@ -45,7 +45,7 @@ router.get('/on-products', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: false,
+      success: '잘못된 요청입니다.',
     });
   }
 });
@@ -93,7 +93,7 @@ router.get('/last-sales', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(400).send({
-      success: false,
+      success: '잘못된 요청입니다.',
     });
   }
 });
@@ -133,7 +133,7 @@ router.get('/popular-keywords', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: false,
+      success: '잘못된 요청입니다.',
     });
   }
 });
@@ -201,7 +201,7 @@ router.get('/expense-reports', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: false,
+      success: '잘못된 요청입니다.',
     });
   }
 });
@@ -224,7 +224,7 @@ router.put('/charge', auth, async (req, res) => {
     });
   } catch (error) {
     return res.status(400).send({
-      success: false,
+      success: '잘못된 요청입니다.',
     });
   }
 });
@@ -242,7 +242,7 @@ router.get('/charge', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: false,
+      success: '잘못된 요청입니다.',
     });
   }
 });

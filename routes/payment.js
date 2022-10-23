@@ -39,7 +39,7 @@ router.get('/', auth, async (req, res) => {
     });
   } catch (error) {
     return res.status(400).send({
-      success: false,
+      success: '잘못된 요청입니다.',
     });
   }
 });
@@ -209,13 +209,11 @@ router.post('/complete', auth, async (req, res) => {
 
     return res.status(201).send({
       success: true,
-      message: 'post success',
     });
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: false,
-      errorMessage: '결제 실패',
+      success: '잘못된 요청입니다.',
     });
   }
 });
@@ -247,7 +245,7 @@ router.get('/complete', auth, async (req, res) => {
     return res.status(200).send(result);
   } catch (error) {
     return res.status(400).send({
-      success: false,
+      success: '잘못된 요청입니다.',
     });
   }
 });

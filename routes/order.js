@@ -66,7 +66,7 @@ router.get('/', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: 'false',
+      success: '잘못된 요청입니다.',
     });
   }
 });
@@ -110,7 +110,7 @@ router.get('/:o_No', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: false,
+      success: '잘못된 요청입니다.',
     });
   }
 });
@@ -180,7 +180,7 @@ router.put('/:o_No/cancel', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: false,
+      success: '잘못된 요청입니다.',
     });
   }
 });

@@ -210,13 +210,11 @@ router.get('/search', async (req, res) => {
     /** 게시물에 좋아요를 누른 유저 */
     let userLike = [];
     const { authorization } = req.headers;
+    const [tokenType, tokenValue] = (authorization || '').split(' ');
 
-    if (!authorization) {
-      /** header에 token이 없으면 */
+    if (tokenType == 'Bearer' && tokenValue == 'null') {
       userLike = [];
     } else {
-      /** header에 token이 있으면 */
-      const [tokenType, tokenValue] = (authorization || '').split(' ');
       const { u_Idx } = jwt.verify(tokenValue, jwtKey);
       let idx = u_Idx;
 
@@ -325,13 +323,11 @@ router.get('/products/:p_Category', async (req, res) => {
     /** 게시물에 좋아요를 누른 유저 */
     let userLike = [];
     const { authorization } = req.headers;
+    const [tokenType, tokenValue] = (authorization || '').split(' ');
 
-    if (!authorization) {
-      /** header에 token이 없으면 */
+    if (tokenType == 'Bearer' && tokenValue == 'null') {
       userLike = [];
     } else {
-      /** header에 token이 있으면 */
-      const [tokenType, tokenValue] = (authorization || '').split(' ');
       const { u_Idx } = jwt.verify(tokenValue, jwtKey);
       let idx = u_Idx;
 

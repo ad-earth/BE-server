@@ -15,6 +15,7 @@ const jwtKey = process.env.U_TOKEN;
 router.get('/:p_No', async (req, res) => {
   let { p_No } = req.params;
   let { keyword } = req.query;
+  console.log('찍혀라 키워드 !!!!! keyword: ', keyword);
 
   p_No = Number(p_No);
 
@@ -95,7 +96,7 @@ router.get('/:p_No', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: '잘못된 요청입니다.',
+      message: '잘못된 요청입니다.',
     });
   }
 });

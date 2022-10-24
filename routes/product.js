@@ -68,7 +68,7 @@ router.post('/', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: '잘못된 요청입니다.',
+      message: '잘못된 요청입니다.',
     });
   }
 });
@@ -136,7 +136,7 @@ router.get('/', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: '잘못된 요청입니다.',
+      message: '잘못된 요청입니다.',
     });
   }
 });
@@ -160,7 +160,7 @@ router.get('/list', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: '잘못된 요청입니다.',
+      message: '잘못된 요청입니다.',
     });
   }
 });
@@ -208,7 +208,7 @@ router.put('/status/:p_No', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: '잘못된 요청입니다.',
+      message: '잘못된 요청입니다.',
     });
   }
 });
@@ -259,7 +259,7 @@ router.get('/:p_No', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: '잘못된 요청입니다.',
+      message: '잘못된 요청입니다.',
     });
   }
 });
@@ -334,7 +334,7 @@ router.put('/:p_No', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: '잘못된 요청입니다.',
+      message: '잘못된 요청입니다.',
     });
   }
 });
@@ -374,7 +374,7 @@ router.delete('/', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: '잘못된 요청입니다.',
+      message: '잘못된 요청입니다.',
     });
   }
 });
@@ -400,7 +400,7 @@ router.put('/content/:p_No', async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(400).send({
-      success: '잘못된 요청입니다.',
+      message: '잘못된 요청입니다.',
     });
   }
 });

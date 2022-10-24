@@ -70,7 +70,7 @@ router.get('/', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: '잘못된 요청입니다.',
+      message: '잘못된 요청입니다.',
     });
   }
 });
@@ -251,7 +251,7 @@ router.get('/search', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: '잘못된 요청입니다.',
+      message: '잘못된 요청입니다.',
     });
   }
 });
@@ -349,7 +349,7 @@ router.get('/products/:p_Category', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: '잘못된 요청입니다.',
+      message: '잘못된 요청입니다.',
     });
   }
 });

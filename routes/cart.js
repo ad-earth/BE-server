@@ -26,7 +26,7 @@ router.post('/', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: '잘못된 요청입니다.',
+      message: '잘못된 요청입니다.',
     });
   }
 });

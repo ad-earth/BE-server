@@ -3,7 +3,7 @@ const router = express.Router();
 const Keyword = require('../schemas/keywords');
 const auth = require('../middlewares/admin-middleware');
 
-/** 예상 순위 및 금액 조회 */
+//-- 예상 순위 및 금액 조회
 router.get('/', auth, async (req, res) => {
   try {
     let { p_No, keyword, k_Level } = req.query;
@@ -62,7 +62,7 @@ router.get('/', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: '잘못된 요청입니다.',
+      message: '잘못된 요청입니다.',
     });
   }
 });

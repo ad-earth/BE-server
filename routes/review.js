@@ -47,8 +47,15 @@ router.post('/:p_No', auth, async (req, res) => {
       });
       /** db.product.p_Reviews + 1 */
       let reviewsCnt = await Product.findOne({ p_No }, { p_Review: 1 }).exec();
+
+      if (reviewsCnt == null) {
+        return res.status(404).send({
+          errorMessage: '삭제된 상품입니다.',
+        });
+      }
+
       let prodReview = 0;
-      if (reviewsCnt.p_Review < 1) {
+      if (reviewsCnt.p_Review == 0) {
         prodReview = 1;
       } else {
         prodReview = reviewsCnt.p_Review + 1;
@@ -71,7 +78,7 @@ router.post('/:p_No', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: '잘못된 요청입니다.',
+      message: '잘못된 요청입니다.',
     });
   }
 });
@@ -127,7 +134,7 @@ router.get('/:p_No', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: '잘못된 요청입니다.',
+      message: '잘못된 요청입니다.',
     });
   }
 });
@@ -159,7 +166,7 @@ router.put('/:r_No', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: '잘못된 요청입니다.',
+      message: '잘못된 요청입니다.',
     });
   }
 });
@@ -198,7 +205,7 @@ router.delete('/:r_No', auth, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).send({
-      success: '잘못된 요청입니다.',
+      message: '잘못된 요청입니다.',
     });
   }
 });

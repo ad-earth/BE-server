@@ -3,16 +3,16 @@ const router = express.Router();
 const auth = require('../middlewares/admin-middleware');
 const SalesProduct = require('../schemas/salesProducts');
 
-/** 상품 보고서 */
+//-- 상품 보고서
 router.get('/', auth, async (req, res) => {
   try {
     let { date, p_Category } = req.query;
 
-    /** token */
+    // token
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
 
-    /** date 처리 */
+    // date 처리
     let startDate = Date;
     let start = '';
     let endDate = Date;
@@ -20,13 +20,13 @@ router.get('/', auth, async (req, res) => {
     let objMatch = {};
 
     if (date == 'null' && p_Category == 'null') {
-      /** 현재 시간 */
+      // YYYY-MM-DD
       let now = new Date(+new Date() + 3240 * 10000)
         .toISOString()
         .replace('T', ' ')
         .substring(0, 10);
 
-      /** 하루 전 */
+      // 하루 전
       startDate = new Date(now);
       start = new Date(startDate);
       endDate = new Date(now);
@@ -37,10 +37,10 @@ router.get('/', auth, async (req, res) => {
 
       objMatch = { a_Idx, createdAt: { $gte: start, $lte: end } };
     } else if (date == 'null' && p_Category != 'null') {
-      // p_Category
+      // 카테고리 조회
       objMatch = { a_Idx, p_Category };
     } else if (date != 'null' && p_Category == 'null') {
-      // date
+      // 기간 조회
       start = new Date(date.substring(1, 11));
       endDate = new Date(date.substring(12, 22));
       end = new Date(endDate);
@@ -48,7 +48,7 @@ router.get('/', auth, async (req, res) => {
 
       objMatch = { a_Idx, createdAt: { $gte: start, $lte: end } };
     } else {
-      // p_Category, date
+      // 카테고리, 기간 조회
       start = new Date(date.substring(1, 11));
       endDate = new Date(date.substring(12, 22));
       end = new Date(endDate);
@@ -68,7 +68,7 @@ router.get('/', auth, async (req, res) => {
       },
     ]);
 
-    /** 총 금액 */
+    // 총 금액
     let totalPrice = 0;
 
     let objData = {};
@@ -84,7 +84,7 @@ router.get('/', auth, async (req, res) => {
       products.push(objData);
     }
 
-    /** 전체 수 */
+    // 전체 수
     let cnt = products.length;
 
     return res.status(200).send({

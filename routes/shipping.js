@@ -3,17 +3,17 @@ const router = express.Router();
 const Delivery = require('../schemas/deliveries');
 const auth = require('../middlewares/user-middleware');
 
-/** 배송지 정보 수정 */
+//-- 배송지 정보 수정
 router.put('/:d_No', auth, async (req, res) => {
   try {
     const { d_No } = req.params;
     const { d_Name, d_Phone, d_Address1, d_Address2, d_Address3 } = req.body;
 
-    /** token */
+    // token
     const { user } = res.locals;
     const u_Idx = user.u_Idx;
 
-    /** db.Deliveries에 해당 유저의 배송지 고유번호 있나 확인 */
+    // db.Deliveries에 해당 유저의 배송지 고유번호 있나 확인
     let db = await Delivery.find({ u_Idx, d_No });
     if (db.length > 0) {
       await Delivery.updateOne(
@@ -43,16 +43,16 @@ router.put('/:d_No', auth, async (req, res) => {
   }
 });
 
-/** 배송지 정보 삭제 */
+//-- 배송지 정보 삭제
 router.delete('/:d_No', auth, async (req, res) => {
   try {
     const { d_No } = req.params;
 
-    /** token */
+    // token
     const { user } = res.locals;
     const u_Idx = user.u_Idx;
 
-    /** db.Deliveries에 해당 유저의 배송지 고유번호 있나 확인 */
+    // db.Deliveries에 해당 유저의 배송지 고유번호 있나 확인
     let db = await Delivery.find({ u_Idx, d_No });
 
     if (db.length > 0) {

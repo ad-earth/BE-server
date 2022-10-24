@@ -7,14 +7,14 @@ const Order = require('../schemas/orders');
 const auth = require('../middlewares/user-middleware');
 const AdminOrder = require('../schemas/adminOrders');
 
-/** 결제페이지 첫화면 */
+//-- 결제페이지 첫화면
 router.get('/', auth, async (req, res) => {
   try {
-    /** token */
+    // token
     const { user } = res.locals;
     const u_Idx = user.u_Idx;
 
-    /** userInfo */
+    // userInfo
     const userInfo = await User.findOne(
       { u_Idx },
       {
@@ -27,7 +27,7 @@ router.get('/', auth, async (req, res) => {
       },
     ).exec();
 
-    /** addressList */
+    // addressList
     const addressList = await Delivery.find(
       { u_Idx },
       { _id: 0, __v: 0 },
@@ -44,12 +44,12 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-/** 결제하기 주문완료 */
+//-- 결제하기 주문완료
 router.post('/complete', auth, async (req, res) => {
   try {
     let { address, products, o_Price } = req.body;
 
-    /** indexedDb 변수명 처리 */
+    // indexedDb 변수명 처리
     let objProductData = {};
     let arrProductData = [];
     for (let w in products) {
@@ -71,11 +71,11 @@ router.post('/complete', auth, async (req, res) => {
 
     products = arrProductData;
 
-    /** token */
+    // token
     const { user } = res.locals;
     const u_Idx = user.u_Idx;
 
-    /** 해당 상품의 p_Status = false이거나 p_Soldout = true 면 결제 불가*/
+    // 해당 상품의 p_Status = false이거나 p_Soldout = true 면 결제 불가
     for (let i in products) {
       let status = await Product.findOne(
         { p_No: products[i].p_No },
@@ -92,7 +92,7 @@ router.post('/complete', auth, async (req, res) => {
     let memo = address.d_Memo;
 
     if (address.d_No == 0) {
-      /** 신규 배송지 추가 */
+      // 신규 배송지 추가
       const recentDNo = await Delivery.find().sort('-d_No').limit(1);
       let d_No = 1;
       if (recentDNo.length !== 0) {
@@ -167,7 +167,7 @@ router.post('/complete', auth, async (req, res) => {
       };
     }
 
-    /** products[i].o_Status = "주문완료" */
+    // products[i].o_Status = "주문완료"
     for (let x in products) {
       products[x].o_Status = '주문완료';
       products[x].r_Status = false;
@@ -175,7 +175,7 @@ router.post('/complete', auth, async (req, res) => {
 
     let o_No = new Date().valueOf();
 
-    /** 날짜 생성 */
+    // 현재 날짜 생성
     const createdAt = new Date(+new Date() + 3240 * 10000).toISOString();
 
     await Order.create({
@@ -187,7 +187,7 @@ router.post('/complete', auth, async (req, res) => {
       createdAt,
     });
 
-    /** 신규 주문 admin에 보내야함 */
+    // 신규 주문 admin에 보내야함
     for (let j in products) {
       let adminIdx = await Product.findOne(
         { p_No: products[j].p_No },
@@ -218,13 +218,13 @@ router.post('/complete', auth, async (req, res) => {
   }
 });
 
-/** 주문완료 */
+//-- 주문완료
 router.get('/complete', auth, async (req, res) => {
   try {
     const { user } = res.locals;
     const u_Idx = user.u_Idx;
 
-    /** 제일 최근에 주문한 주문 번호 */
+    // 제일 최근에 주문한 주문 번호
     let orders = await Order.findOne(
       { u_Idx },
       { _id: 0, o_No: 1, o_Price: 1, address: 1 },

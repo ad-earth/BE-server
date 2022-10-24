@@ -9,10 +9,10 @@ const dotenv = require('dotenv');
 dotenv.config();
 const jwtKey = process.env.U_TOKEN;
 
-/** 메인화면 */
+//-- 메인화면
 router.get('/', async (req, res) => {
   try {
-    /** best */
+    // best
     let bestProd = await Product.find(
       {},
       {
@@ -37,7 +37,7 @@ router.get('/', async (req, res) => {
       bestProd[a].p_Thumbnail = bestProd[a].p_Thumbnail.slice(0, 2);
     }
 
-    /** new */
+    // new
     let newProd = await Product.find(
       {},
       {
@@ -75,7 +75,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-/** 검색 상품 조회 */
+//-- 검색 상품 조회
 router.get('/search', async (req, res) => {
   try {
     let { keyword, page, maxpost } = req.query;
@@ -83,14 +83,14 @@ router.get('/search', async (req, res) => {
     page = Number(page);
     maxpost = Number(maxpost);
 
-    /** maxpost 수만큼 page 처리 */
+    // maxpost 수만큼 page 처리
     let skipCnt = 0;
     page == 1 ? (skipCnt = 0) : (skipCnt = page * maxpost - maxpost);
 
-    /** 키워드를 등록한 전체 게시물 수 */
+    // 키워드를 등록한 전체 게시물 수
     const cnt = await Keyword.find({ keyword: keyword }).count();
 
-    /** 광고 on 상태인 게시물 수 */
+    // 광고 on 상태인 게시물 수
     const onCnt = await Keyword.find({
       keyword: keyword,
       k_Status: true,
@@ -100,7 +100,7 @@ router.get('/search', async (req, res) => {
     let products = [];
 
     if (page == 1) {
-      /** 키워드 광고를 등록한 전체 게시물 순위로 뽑음 */
+      // 키워드 광고를 등록한 전체 게시물 순위로 뽑음
       let onKeyword = await Keyword.find(
         {
           keyword: keyword,
@@ -141,7 +141,7 @@ router.get('/search', async (req, res) => {
       maxpost = 2;
       skipCnt = maxpost - onCnt;
     }
-    /** 키워드는 등록했지만 광고 등록하지 않은 게시물 */
+    // 키워드는 등록했지만 광고 등록하지 않은 게시물
     let offKeyword = await Keyword.find(
       {
         keyword: keyword,
@@ -183,7 +183,7 @@ router.get('/search', async (req, res) => {
       }
     }
 
-    /** thumbnail 가공 */
+    // thumbnail 가공
     for (let a in adProducts) {
       adProducts[a].p_Thumbnail = adProducts[a].p_Thumbnail.slice(0, 2);
     }
@@ -191,7 +191,7 @@ router.get('/search', async (req, res) => {
       products[b].p_Thumbnail = products[b].p_Thumbnail.slice(0, 1);
     }
 
-    /** like 가공 */
+    // Best 여부
     for (let c in adProducts) {
       if (adProducts[c].p_Like > 0) {
         adProducts[c].p_Best = true;
@@ -207,7 +207,7 @@ router.get('/search', async (req, res) => {
         products[d].p_Best = false;
       }
     }
-    /** 게시물에 좋아요를 누른 유저 */
+    // 해당 게시물 wish 저장한 유저
     let userLike = [];
     const { authorization } = req.headers;
     const [tokenType, tokenValue] = (authorization || '').split(' ');
@@ -256,7 +256,7 @@ router.get('/search', async (req, res) => {
   }
 });
 
-/** 카테고리별 조회 */
+//-- 카테고리별 조회
 router.get('/products/:p_Category', async (req, res) => {
   try {
     let { sort, page, maxpost } = req.query;
@@ -265,7 +265,7 @@ router.get('/products/:p_Category', async (req, res) => {
     page = Number(page);
     maxpost = Number(maxpost);
 
-    /** maxpost 수만큼 page 처리 */
+    // maxpost 수만큼 page 처리
     let skipCnt = 0;
     page == 1 ? (skipCnt = 0) : (skipCnt = page * maxpost - maxpost);
 
@@ -285,10 +285,10 @@ router.get('/products/:p_Category', async (req, res) => {
     } else {
       objFind = { p_Category: p_Category };
     }
-    /** 카테고리 전체 게시물 수 */
+    // 카테고리 전체 게시물 수
     let cnt = await Product.find(objFind).count();
 
-    /** 게시물 */
+    // 게시물
     let products = await Product.find(objFind, {
       _id: 0,
       p_No: 1,
@@ -311,7 +311,7 @@ router.get('/products/:p_Category', async (req, res) => {
       .limit(maxpost)
       .skip(skipCnt);
 
-    /** best 기준 like가 1개라도 있으면 true 추후 수정 예정 */
+    // best 기준 like가 1개라도 있으면 true 추후 수정 예정
     for (let x = 0; x < products.length; x++) {
       if (products[x].p_Like > 0) {
         products[x].p_Best = true;
@@ -320,7 +320,7 @@ router.get('/products/:p_Category', async (req, res) => {
       }
     }
 
-    /** 게시물에 좋아요를 누른 유저 */
+    // 게시물에 좋아요를 누른 유저
     let userLike = [];
     const { authorization } = req.headers;
     const [tokenType, tokenValue] = (authorization || '').split(' ');

@@ -7,10 +7,10 @@ const Admin = require('../schemas/admins');
 const SalesProduct = require('../schemas/salesProducts');
 const SalesKeyword = require('../schemas/salesKeywords');
 
-/** 신규주문 수 */
+//-- 신규 주문 수
 router.get('/new-orders', auth, async (req, res) => {
   try {
-    /** token */
+    // token
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
 
@@ -30,10 +30,10 @@ router.get('/new-orders', auth, async (req, res) => {
   }
 });
 
-/** 노출 상품 수 */
+//-- 노출중인 상품 수
 router.get('/on-products', auth, async (req, res) => {
   try {
-    /** token */
+    // token
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
 
@@ -50,14 +50,14 @@ router.get('/on-products', auth, async (req, res) => {
   }
 });
 
-/** 전월 매출액 */
+//-- 전월 매출액
 router.get('/last-sales', auth, async (req, res) => {
   try {
-    /** token */
+    // token
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
 
-    /** 현재 날짜 */
+    // 현재 날짜
     let today = new Date(+new Date() + 3240 * 10000)
       .toISOString()
       .replace('T', ' ')
@@ -68,11 +68,11 @@ router.get('/last-sales', auth, async (req, res) => {
     let endDate = new Date(today);
     let end = new Date(today);
 
-    /** 지난 달 1일 */
+    // 지난 달 1일
     start.setMonth(startDate.getMonth() - 1);
     start.setDate(startDate.getDate() - startDate.getDate() + 1);
 
-    /** 현재 달 1일 */
+    // 현재 달 1일
     end.setDate(endDate.getDate() - endDate.getDate() + 1);
 
     let data = await SalesProduct.aggregate([
@@ -98,7 +98,7 @@ router.get('/last-sales', auth, async (req, res) => {
   }
 });
 
-/** 인기 키워드 순위 10 */
+//-- 인기 키워드 10
 router.get('/popular-keywords', async (req, res) => {
   try {
     let data = await SalesKeyword.aggregate([
@@ -111,6 +111,7 @@ router.get('/popular-keywords', async (req, res) => {
       { $limit: 10 },
       { $sort: { k_Click: -1 } },
     ]);
+
     let keywords = [];
 
     if (data.length == 0) {
@@ -120,6 +121,7 @@ router.get('/popular-keywords', async (req, res) => {
         keywords.push(data[x]._id.keyword);
       }
       if (keywords.length != 9) {
+        // 키워드가 10개 미만이면 남은 키워드 자리 '-'으로 반환
         let pushCnt = 10 - keywords.length;
         for (let y in pushCnt) {
           keywords.push('-');
@@ -138,14 +140,14 @@ router.get('/popular-keywords', async (req, res) => {
   }
 });
 
-/** 광고 요약 보고서 */
+//-- 광고 요약 보고서
 router.get('/expense-reports', auth, async (req, res) => {
   try {
-    /** token */
+    // token
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
 
-    /** 현재 날짜 */
+    // 현재 날짜
     let today = new Date(+new Date() + 3240 * 10000)
       .toISOString()
       .replace('T', ' ')
@@ -158,12 +160,13 @@ router.get('/expense-reports', auth, async (req, res) => {
 
     let objData = {};
     let data = [];
+
     for (let i = 1; i < 4; i++) {
-      /** 지난 달 1일 */
+      // 지난 달 1일
       start.setMonth(startDate.getMonth() - i);
       start.setDate(startDate.getDate() - startDate.getDate() + 1);
 
-      /** 현재 달 1일 */
+      // 현재 달 1일
       end.setMonth(endDate.getMonth() - i + 1);
       end.setDate(endDate.getDate() - endDate.getDate() + 1);
 
@@ -191,10 +194,10 @@ router.get('/expense-reports', auth, async (req, res) => {
           salesCost: 0,
         };
       }
-
       data.push(objData);
     }
     data.reverse();
+
     return res.status(200).send({
       data,
     });
@@ -206,10 +209,10 @@ router.get('/expense-reports', auth, async (req, res) => {
   }
 });
 
-/** 광고비 충전 */
+//-- 광고비 충전
 router.put('/charge', auth, async (req, res) => {
   try {
-    /** token */
+    // token
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
 
@@ -229,10 +232,10 @@ router.put('/charge', auth, async (req, res) => {
   }
 });
 
-/** 광고비 조회 */
+//-- 광고비 조회
 router.get('/charge', auth, async (req, res) => {
   try {
-    /** token */
+    // token
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
 

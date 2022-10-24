@@ -3,17 +3,17 @@ const router = express.Router();
 const auth = require('../middlewares/admin-middleware');
 const SalesKeyword = require('../schemas/salesKeywords');
 
-/** 키워드 보고서 */
+//-- 키워드 보고서
 router.get('/', auth, async (req, res) => {
   try {
     let { date, p_No } = req.query;
     p_No = Number(p_No);
 
-    /** token */
+    // token
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
 
-    /** date 처리 */
+    // date 처리
     let start = new Date(date.substring(1, 11));
     let endDate = new Date(date.substring(12, 22));
     let end = new Date(endDate);
@@ -40,6 +40,7 @@ router.get('/', auth, async (req, res) => {
 
     let objData = {};
     let list = [];
+
     for (let a in data) {
       objData = {
         keyword: data[a]._id.keyword,
@@ -51,7 +52,7 @@ router.get('/', auth, async (req, res) => {
       list.push(objData);
     }
 
-    /** 전체 수 */
+    // 전체 수
     let cnt = list.length;
 
     return res.status(200).send({

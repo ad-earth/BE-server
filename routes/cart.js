@@ -3,18 +3,19 @@ const router = express.Router();
 const Cart = require('../schemas/carts');
 const auth = require('../middlewares/user-middleware');
 
-/** 장바구니 저장 */
+//-- 장바구니 저장
 router.post('/', auth, async (req, res) => {
   try {
     const { cartList } = req.body;
 
-    /** token */
+    // token
     const { user } = res.locals;
     const u_Idx = user.u_Idx;
 
-    /** u_Idx 기준으로 cart에 기존 db 있는지 확인 */
+    // cart에 기존 db 있는지 확인
     let db = await Cart.find({ u_Idx }).exec();
 
+    // 장바구니 내역 있으면 삭제
     if (db != null) {
       await Cart.deleteOne({ u_Idx });
     }

@@ -8,16 +8,16 @@ const Product = require('../schemas/products');
 const Keyword = require('../schemas/keywords');
 const auth = require('../middlewares/admin-middleware');
 
-/** 배송조회 */
+//-- 배송 조회
 router.get('/', auth, async (req, res) => {
   try {
     let { page, maxpost, date, p_Name, o_Status } = req.query;
 
-    /** token */
+    // token
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
 
-    /** page처리 */
+    // page 처리
     page = Number(page);
     maxpost = Number(maxpost);
 
@@ -27,14 +27,15 @@ router.get('/', auth, async (req, res) => {
     let cnt = 0;
     let arrProd = [];
 
-    /** date 처리 */
+    // 기간 조회 type 선언
     let start = '';
     let endDate = Date;
     let end = '';
+    // find 조건 type 선언
     let objFind = {};
 
     if (p_Name == 'null' && o_Status == 'null' && date != 'null') {
-      /** date */
+      // 기간 조회
       start = new Date(date.substring(1, 11));
       endDate = new Date(date.substring(12, 22));
       end = new Date(endDate);
@@ -45,19 +46,19 @@ router.get('/', auth, async (req, res) => {
         a_Idx: a_Idx,
       };
     } else if (p_Name != 'null' && o_Status == 'null' && date == 'null') {
-      /** p_Name */
+      // 상품명 조회
       objFind = {
         'products.p_Name': p_Name,
         a_Idx: a_Idx,
       };
     } else if (p_Name == 'null' && o_Status != 'null' && date == 'null') {
-      /** o_Status */
+      // 주문상태 조회
       objFind = {
         o_Status: o_Status,
         a_Idx: a_Idx,
       };
     } else if (p_Name != 'null' && o_Status == 'null' && date != 'null') {
-      /** date, p_Name */
+      // 기간, 상품명 조회
       start = new Date(date.substring(1, 11));
       endDate = new Date(date.substring(12, 22));
       end = new Date(endDate);
@@ -69,7 +70,7 @@ router.get('/', auth, async (req, res) => {
         a_Idx: a_Idx,
       };
     } else if (p_Name == 'null' && o_Status != 'null' && date != 'null') {
-      /** date, o_Status */
+      // 기간, 주문상태 조회
       start = new Date(date.substring(1, 11));
       endDate = new Date(date.substring(12, 22));
       end = new Date(endDate);
@@ -81,14 +82,14 @@ router.get('/', auth, async (req, res) => {
         a_Idx: a_Idx,
       };
     } else if (p_Name != 'null' && o_Status != 'null' && date == 'null') {
-      /** p_Name, o_Status */
+      // 상품명, 주문상태 조회
       objFind = {
         o_Status: o_Status,
         'products.p_Name': p_Name,
         a_Idx: a_Idx,
       };
     } else if (p_Name != 'null' && o_Status != 'null' && date != 'null') {
-      /** date, p_Name, o_Status */
+      // 기간, 상품명, 주문상태 조회
       start = new Date(date.substring(1, 11));
       endDate = new Date(date.substring(12, 22));
       end = new Date(endDate);
@@ -101,6 +102,7 @@ router.get('/', auth, async (req, res) => {
         a_Idx: a_Idx,
       };
     } else {
+      // 전체 조회(첫 화면)
       objFind = {
         a_Idx: a_Idx,
       };
@@ -113,7 +115,6 @@ router.get('/', auth, async (req, res) => {
       .limit(maxpost)
       .skip(skipCnt);
 
-    /** data 가공  */
     let list = [];
     let objProd = {};
 
@@ -139,6 +140,7 @@ router.get('/', auth, async (req, res) => {
         o_Date: objDate,
         o_Status: arrProd[c].o_Status,
       };
+
       list.push(objProd);
     }
 
@@ -154,16 +156,16 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-/** 신규주문에 대하여 주문확정 처리 */
+//-- 신규주문에 대하여 주문확정 처리
 router.put('/', auth, async (req, res) => {
   try {
     let { confirm } = req.body;
 
-    /** token */
+    // token
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
 
-    /** 신규주문건인지 확인 */
+    // 신규주문인지 확인
     for (let a in confirm) {
       let trueStatus = await AdminOrder.findOne({
         o_No: confirm[a].o_No,
@@ -181,7 +183,8 @@ router.put('/', auth, async (req, res) => {
     }
 
     let r_Status = true;
-    /** 신규주문 > 배송완료 변경 */
+
+    // 신규주문 상태 배송완료로 변경
     for (let b in confirm) {
       await AdminOrder.updateOne(
         { o_No: confirm[b].o_No, p_No: confirm[b].p_No, a_Idx: a_Idx },
@@ -196,7 +199,8 @@ router.put('/', auth, async (req, res) => {
     }
 
     let orderStatus = '배송완료';
-    /** 주문완료 > 배송완료 변경 */
+
+    // 주문완료 상태 배송완료 변경
     for (let c in confirm) {
       await Order.updateOne(
         {
@@ -212,10 +216,10 @@ router.put('/', auth, async (req, res) => {
       );
     }
 
-    /** 날짜 생성 */
+    // 오늘 날짜 생성
     const createdAt = new Date(+new Date() + 3240 * 10000).toISOString();
 
-    /** salesReport 구매내역 생성 */
+    // salesReport 구매내역 생성
     for (let d in confirm) {
       let prodInfo = await AdminOrder.findOne({
         o_No: confirm[d].o_No,
@@ -237,7 +241,7 @@ router.put('/', auth, async (req, res) => {
         { _id: 0, p_Price: 1, p_Cnt: 1 },
       );
 
-      /** 상품 누적 판매 금액, 수량 업데이트 */
+      // 상품 누적 판매 금액 및 수량 업데이트
       let prodPrice = infoProd.p_Price + prodInfo.products.p_Price;
       let prodCnt = infoProd.p_Cnt + prodInfo.products.p_Cnt;
 
@@ -252,7 +256,7 @@ router.put('/', auth, async (req, res) => {
       );
     }
 
-    /** salesKeyword 전환내역 생성 */
+    // salesKeyword 전환내역 생성
     for (let e in confirm) {
       let findKeywordInfo = await AdminOrder.findOne({
         o_No: confirm[e].o_No,

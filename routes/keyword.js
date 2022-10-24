@@ -4,19 +4,20 @@ const Keyword = require('../schemas/keywords');
 const Admin = require('../schemas/admins');
 const auth = require('../middlewares/admin-middleware');
 
-/** 상품 선택 후 조회 */
+//-- 상품 선택 후 조회
 router.get('/:p_No', auth, async (req, res) => {
   try {
     let { p_No } = req.params;
 
     p_No = Number(p_No);
 
-    /** token */
+    // token
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
 
-    /** 전체 게시물 수 */
+    // 전체 게시물 수
     let cnt = await Keyword.find({ a_Idx, p_No }).count();
+
     let keywordList = [];
 
     if (cnt != 0) {
@@ -28,7 +29,7 @@ router.get('/:p_No', auth, async (req, res) => {
       let objData = {};
 
       for (let a in keyword) {
-        /** 총 광고비 계산 */
+        // 총 광고비 계산
         let clickCost = keyword[a].k_Click * keyword[a].k_Cost;
         objData = {
           id: 1 + Number(a),
@@ -56,13 +57,13 @@ router.get('/:p_No', auth, async (req, res) => {
   }
 });
 
-/** 광고 등록 */
+// 광고 등록
 router.post('/:p_No', auth, async (req, res) => {
   try {
     let { p_No } = req.params;
     let { keyword, k_Level, k_Cost, k_Status } = req.body;
 
-    /** token */
+    // token
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
     const a_Charge = admin.a_Charge;
@@ -73,10 +74,10 @@ router.post('/:p_No', auth, async (req, res) => {
 
     let db = await Keyword.find({ p_No }).exec();
 
-    /** 기존에 등록된 키워드가 있는지 */
+    // 기존에 등록한 키워드 있는지 확인
     let keywordData = await Keyword.find({ p_No, keyword }).exec();
 
-    /** 현재 키워드로 등록된 키워드가 없다면 입찰금 순위 확인 */
+    // 현재 키워드로 등록된 키워드가 없다면 입찰금 순위 확인
     let levelCost = await Keyword.findOne(
       {
         p_No: { $ne: p_No },
@@ -89,17 +90,17 @@ router.post('/:p_No', auth, async (req, res) => {
 
     let objData = {};
     if (db.length >= 20) {
-      /** 등록된 키워드가 20개이면 등록 불가 */
+      // 등록된 키워드가 20개이면 등록 불가
       return res.status(400).send({
         errorMessage: '키워드 등록 수 초과로 등록 불가',
       });
     } else if (k_Cost >= a_Charge && k_Status == true) {
-      /** 입찰금이 보유 충전금보다 적으면 등록 불가 */
+      // 입찰금이 보유 충전금보다 적으면 등록 불가
       return res.status(400).send({
         errorMessage: '충전금이 부족합니다.',
       });
     } else if (keywordData.length != 0) {
-      /** 기존에 등록된 키워드가 있다면 */
+      // 기존에 등록된 키워드가 있다면
       return res.status(400).send({
         errorMessage: '이미 등록된 키워드입니다.',
       });
@@ -108,21 +109,21 @@ router.post('/:p_No', auth, async (req, res) => {
       (db.length == 0 && k_Level == 5) ||
       (db.length != 0 && k_Level == 5)
     ) {
-      /** 5 순위이면 광고 off 상태로 키워드 등록 */
+      // 5 순위이면 광고 off 상태로 키워드 등록
       objData = { p_No, keyword, k_Level: 5, k_Cost: 0, k_Status: false };
     } else if (levelCost != null && levelCost.k_Cost >= k_Cost) {
-      /** 현재 키워드로 등록된 키워드가 없다면 입찰금 순위 확인 후 */
-      /** 입찰금이 기존 입찰금보다 가격이 낮거나 같으면 errorMessage 반환 */
+      // 현재 키워드로 등록된 키워드가 없다면 입찰금 순위 확인 후
+      // 입찰금이 기존 입찰금보다 가격이 낮거나 같으면 errorMessage 반환
       return res.status(400).send({
         errorMessage: `키워드 ${keyword}의 입찰금 ${k_Cost}원은 순위에 맞는 입찰금이 아닙니다.`,
       });
     } else {
-      /** 원하는 순위가 현재 비어있는 순위인지 확인 */
+      // 원하는 순위가 현재 비어있는 순위인지 확인
       if (levelCost == null) {
-        /** 빈 순위이면 광고 등록 */
+        // 빈 순위이면 광고 등록
         objData = { p_No, keyword, k_Level, k_Cost, k_Status: true };
       } else {
-        /** 입찰금이 기존 입찰금보다 높으며, 같은 순위이면 기존 순위를 +1 하여 순위 하락 */
+        // 입찰금이 기존 입찰금보다 높으며, 같은 순위이면 기존 순위를 +1 하여 순위 하락
         let downLevel = levelCost.k_Level;
 
         let sameLevel = await Keyword.find(
@@ -136,9 +137,9 @@ router.post('/:p_No', auth, async (req, res) => {
         ).exec();
 
         if (sameLevel.length == 0) {
-          /** 순위를 하락했을 때 중복 순위가 없다면 */
+          // 순위를 하락했을 때 중복 순위가 없다면
           if (downLevel == 4) {
-            /** 기존 4위 키워드 5위로 하락시키고 광고 미노출 */
+            // 기존 4위 키워드 5위로 하락시키고 광고 미노출
             let offStatus = false;
             await Keyword.updateOne(
               {
@@ -160,7 +161,7 @@ router.post('/:p_No', auth, async (req, res) => {
             );
           }
         } else {
-          /** 순위를 하락했을 때 중복 순위가 있다면 */
+          // 순위를 하락했을 때 중복 순위가 있다면
           let sameNo = [];
 
           do {
@@ -175,7 +176,7 @@ router.post('/:p_No', auth, async (req, res) => {
             ).exec();
 
             if (sameLevel.length != 0) {
-              /** 순위 하락시 중복 값 배열에 담기 */
+              // 순위 하락시 중복 값 배열에 담기
               sameNo.push(sameLevel[0]);
               downLevel++;
             }
@@ -184,7 +185,7 @@ router.post('/:p_No', auth, async (req, res) => {
           for (let a in sameNo) {
             downLevel = sameNo[a].k_Level + 1;
             let changeStatus = 'on';
-            /** 순위를 내려줘야하는 중복 값 중 순위가 5위면 k_Status = "off"로 수정 */
+            // 순위를 내려줘야하는 중복 값 중 순위가 5위면 k_Status = "off"로 수정
             downLevel == 5 ? (changeStatus = false) : (changeStatus = true);
             await Keyword.updateOne(
               {
@@ -204,13 +205,14 @@ router.post('/:p_No', auth, async (req, res) => {
       }
     }
 
-    /** 순위가 없다면 키워드 등록 */
+    // 순위가 없다면 키워드 등록
     const recentNo = await Keyword.find().sort('-k_No').limit(1);
     let k_No = 1;
     if (recentNo.length !== 0) {
       k_No = recentNo[0]['k_No'] + 1;
     }
 
+    // 현재 시간 생성
     const createdAt = new Date(+new Date() + 3240 * 10000).toISOString();
 
     objData.k_No = k_No;
@@ -230,7 +232,7 @@ router.post('/:p_No', auth, async (req, res) => {
   }
 });
 
-/** 키워드 수정 */
+//-- 키워드 수정
 router.put('/:p_No', auth, async (req, res) => {
   try {
     let { p_No } = req.params;
@@ -240,7 +242,7 @@ router.put('/:p_No', auth, async (req, res) => {
     k_Level = Number(k_Level);
     k_Cost = Number(k_Cost);
 
-    /** token */
+    // token
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
 
@@ -260,7 +262,7 @@ router.put('/:p_No', auth, async (req, res) => {
     ).exec();
 
     if (adminCharge.a_Charge <= k_Cost && k_Status == true) {
-      /** 입찰금이 충전금보다 가격이 낮거나 같으면 errorMessage 반환 */
+      // 입찰금이 충전금보다 가격이 낮거나 같으면 errorMessage 반환
       return res.status(400).send({
         errorMessage: '충전금이 부족합니다.',
       });
@@ -269,20 +271,20 @@ router.put('/:p_No', auth, async (req, res) => {
       levelCost.k_Cost >= k_Cost &&
       k_Status == true
     ) {
-      /**입찰금이 기존 입찰금보다 가격이 낮거나 같으면 errorMessage 반환 */
+      // 입찰금이 기존 입찰금보다 가격이 낮거나 같으면 errorMessage 반환
       return res.status(400).send({
         errorMessage: `키워드 ${keyword}의 입찰금 ${k_Cost}원은 순위에 맞는 입찰금이 아닙니다.`,
       });
     } else if (k_Status == false || k_Level == 5) {
-      /** k_Status = false 또는 k_Level = 5면 true > false로 수정*/
+      // k_Status = false 또는 k_Level = 5면 true > false로 수정
       await Keyword.updateOne(
         { p_No, keyword },
         { $set: { k_Status: false, k_Level: 5, k_Click: 0, k_Cost: 0 } },
       );
     } else {
-      /** 원하는 순위가 현재 비어있는 순위인지 확인 */
+      // 원하는 순위가 현재 비어있는 순위인지 확인
       if (levelCost == null) {
-        /** 빈 순위이면 광고 등록 */
+        // 빈 순위이면 광고 등록
         let emptyLevel = await Keyword.updateOne(
           { p_No, keyword },
           {
@@ -294,8 +296,7 @@ router.put('/:p_No', auth, async (req, res) => {
           },
         );
       } else {
-        /** 입찰금이 기존 입찰금보다 높으며, 같은 순위이면 기존 순위를 +1 하여 순위 하락 */
-
+        // 입찰금이 기존 입찰금보다 높으며, 같은 순위이면 기존 순위를 +1 하여 순위 하락
         let downLevel = levelCost.k_Level;
 
         let sameLevel = await Keyword.find(
@@ -309,7 +310,7 @@ router.put('/:p_No', auth, async (req, res) => {
         ).exec();
 
         if (sameLevel.length == 0) {
-          /** 순위를 하락했을 때 중복 순위가 없다면 */
+          // 순위를 하락했을 때 중복 순위가 없다면
           if (downLevel == 4) {
             let offStatus = false;
             await Keyword.updateOne(
@@ -337,7 +338,7 @@ router.put('/:p_No', auth, async (req, res) => {
             );
           }
         } else {
-          /** 순위를 하락했을 때 중복 순위가 있다면 */
+          // 순위를 하락했을 때 중복 순위가 있다면
           let sameNo = [];
 
           do {
@@ -352,7 +353,7 @@ router.put('/:p_No', auth, async (req, res) => {
             ).exec();
 
             if (sameLevel.length != 0) {
-              /** 순위 하락시 중복 값 배열에 담기 */
+              // 순위 하락시 중복 값 배열에 담기
               sameNo.push(sameLevel[0]);
               downLevel++;
             }
@@ -361,7 +362,7 @@ router.put('/:p_No', auth, async (req, res) => {
           for (let b = 0; b < sameNo.length; b++) {
             downLevel = sameNo[b].k_Level + 1;
             let changeStatus = true;
-            /** 순위를 내려줘야하는 중복 값 중 순위가 5위면 k_Status = "off"로 수정*/
+            // 순위를 내려줘야하는 중복 값 중 순위가 5위면 k_Status = "off"로 수정
             downLevel == 5 ? (changeStatus = false) : (changeStatus = true);
             await Keyword.updateOne(
               {
@@ -405,7 +406,7 @@ router.put('/:p_No', auth, async (req, res) => {
   }
 });
 
-/** 키워드 선택 삭제(복수 가능) */
+//-- 키워드 선택 삭제
 router.delete('/:p_No', auth, async (req, res) => {
   try {
     const { keywordList } = req.body;

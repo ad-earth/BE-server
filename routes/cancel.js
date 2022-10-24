@@ -3,7 +3,7 @@ const router = express.Router();
 const auth = require('../middlewares/user-middleware');
 const CancelProd = require('../schemas/cancelProd');
 
-/** 취소 상품 조회 */
+//-- 취소 상품 조회
 router.get('/', auth, async (req, res) => {
   try {
     let { page, maxpost } = req.query;
@@ -11,15 +11,15 @@ router.get('/', auth, async (req, res) => {
     page = Number(page);
     maxpost = Number(maxpost);
 
-    /** maxpost 수만큼 page 처리 */
+    // maxpost 수만큼 page 처리
     let skipCnt = 0;
     page == 1 ? (skipCnt = 0) : (skipCnt = page * maxpost - maxpost);
 
-    /** token */
+    // token
     const { user } = res.locals;
     const u_Idx = user.u_Idx;
 
-    /** 전체 게시물 수 */
+    // 전체 게시물 수
     let cnt = await CancelProd.find({ u_Idx }).count();
 
     let cancelList = [];
@@ -29,6 +29,7 @@ router.get('/', auth, async (req, res) => {
       let db = await CancelProd.find({ u_Idx }).limit(maxpost).skip(skipCnt);
       let objList = {};
       for (let x in db) {
+        // YYYY-MM-DD
         let date = db[x].createdAt
           .toISOString()
           .replace('T', ' ')

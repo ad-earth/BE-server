@@ -5,7 +5,7 @@ const Keyword = require('../schemas/keywords');
 const Wish = require('../schemas/wishes');
 const auth = require('../middlewares/admin-middleware');
 
-/** 상품등록 */
+//-- 상품등록
 router.post('/', auth, async (req, res) => {
   try {
     let {
@@ -20,19 +20,20 @@ router.post('/', auth, async (req, res) => {
       p_Content,
     } = req.body;
 
-    /** token */
+    // token
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
     const a_Brand = admin.a_Brand;
 
     let p_No = new Date().valueOf();
 
-    /** 날짜 생성 */
+    // 현재 날짜 생성
     const createdAt = new Date(+new Date() + 3240 * 10000).toISOString();
 
-    /** 옵션 객체 배열로 변환 */
+    // 옵션 객체 배열로 변환
     let arrOption = [];
     let arrDetail = [];
+
     for (let i in p_Option) {
       arrDetail = [
         p_Option[i].color,
@@ -73,32 +74,33 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-/** 전체 및 카테고리 상품 조회 */
+//-- 전체 및 카테고리 상품 조회
 router.get('/', auth, async (req, res) => {
   try {
     let { page, maxpost, p_Category } = req.query;
 
-    /** token */
+    // token
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
 
     let findData = {};
     if (p_Category.length != 0 && p_Category != '전체') {
-      /** 카테고리별 상품 */
+      // 카테고리별 상품
       findData = { a_Idx, p_Category };
     } else {
-      /** 전체 상품 */
+      // 전체 상품
       findData = { a_Idx };
     }
 
-    /** 총 상품 수 */
+    // 총 상품 수
     let cnt = await Product.find(findData).count();
+
     let list = [];
 
     if (cnt == 0) {
       list = [];
     } else {
-      /** page처리 */
+      // page처리
       page = Number(page);
       maxpost = Number(maxpost);
 
@@ -141,13 +143,12 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-/** 상품 목록 드롭 */
+//-- 상품 목록 드롭
 router.get('/list', auth, async (req, res) => {
   try {
-    /** token */
+    // token
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
-    console.log('a_Idx: ', a_Idx);
 
     let productList = await Product.find(
       { a_Idx },
@@ -165,14 +166,14 @@ router.get('/list', auth, async (req, res) => {
   }
 });
 
-/** 상품 노출 여부 */
+//-- 상품 노출 여부
 router.put('/status/:p_No', auth, async (req, res) => {
   try {
     let { p_No } = req.params;
 
     p_No = Number(p_No);
 
-    /** token */
+    // token
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
 
@@ -213,14 +214,14 @@ router.put('/status/:p_No', auth, async (req, res) => {
   }
 });
 
-/** 상품 상세 정보 */
+//-- 상품 상세 정보
 router.get('/:p_No', auth, async (req, res) => {
   try {
     let { p_No } = req.params;
 
     p_No = Number(p_No);
 
-    /** token */
+    // token
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
 
@@ -264,7 +265,7 @@ router.get('/:p_No', auth, async (req, res) => {
   }
 });
 
-/** 상품수정 */
+//-- 상품수정
 router.put('/:p_No', auth, async (req, res) => {
   try {
     let { p_No } = req.params;
@@ -282,11 +283,11 @@ router.put('/:p_No', auth, async (req, res) => {
 
     p_No = Number(p_No);
 
-    /** token */
+    // token
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
 
-    /** 옵션 객체 배열 변경 */
+    // 옵션 객체 배열 변경
     let arrDetail = [];
     let arrOption = [];
 
@@ -305,7 +306,7 @@ router.put('/:p_No', auth, async (req, res) => {
 
     let db = await Product.findOne({ p_No }, { _id: 0, a_Idx: 1 }).exec();
 
-    /** token과 param의 a_Idx 일치하는지 확인 */
+    // token과 param의 a_Idx 일치하는지 확인
     if (a_Idx == db.a_Idx) {
       await Product.updateOne(
         { p_No },
@@ -339,12 +340,12 @@ router.put('/:p_No', auth, async (req, res) => {
   }
 });
 
-/** 상품삭제 */
+//-- 상품삭제
 router.delete('/', auth, async (req, res) => {
   try {
     let { p_No } = req.body;
 
-    /** token */
+    // token
     const { admin } = res.locals;
     const a_Idx = admin.a_Idx;
 
@@ -355,11 +356,11 @@ router.delete('/', auth, async (req, res) => {
 
     if (a_Idx == db.a_Idx) {
       for (let i in p_No) {
-        /** 등록 상품 삭제 */
+        // 등록 상품 삭제
         await Product.deleteOne({ p_No: p_No[i] });
-        /** 등록 키워드 삭제 */
+        // 등록 키워드 삭제
         await Keyword.deleteOne({ p_No: p_No[i], a_Idx });
-        /** 위시리스트 삭제 */
+        // 위시리스트 삭제
         await Wish.deleteMany({ p_No });
       }
 
@@ -379,17 +380,13 @@ router.delete('/', auth, async (req, res) => {
   }
 });
 
-/** 상품 부분 수정 */
+//-- 상품 상세 설명 수정
 router.put('/content/:p_No', async (req, res) => {
   try {
     let { p_No } = req.params;
     let { p_Content } = req.body;
 
     p_No = Number(p_No);
-
-    /** token */
-    // const { admin } = res.locals;
-    // const a_Idx = admin.a_Idx;
 
     let result = await Product.updateOne({ p_No }, { $set: { p_Content } });
     console.log('result: ', result);

@@ -11,7 +11,7 @@ const Billing = require('../schemas/salesKeywords');
 dotenv.config();
 const jwtKey = process.env.U_TOKEN;
 
-/** 상품 정보 조회 */
+//-- 상품 정보 조회
 router.get('/:p_No', async (req, res) => {
   let { p_No } = req.params;
   let { keyword } = req.query;
@@ -21,8 +21,8 @@ router.get('/:p_No', async (req, res) => {
 
   let k_No = 0;
   if (keyword) {
-    /** db.expense 현재 키워드, 키워드번호, 입찰금 생성 및 charge 금액 차감 */
-    /** keyword db의 현재 키워드 클릭수 +1 */
+    // db.expense 현재 키워드, 키워드번호, 입찰금 생성 및 charge 금액 차감
+    // keyword db의 현재 키워드 클릭수 +1
     let keywordData = await Keyword.findOne({ p_No, keyword }).exec();
     await Keyword.updateOne(
       { p_No, keyword },
@@ -40,6 +40,7 @@ router.get('/:p_No', async (req, res) => {
       },
     );
 
+    // 현재 시간 생성
     const createdAt = new Date(+new Date() + 3240 * 10000).toISOString();
 
     await Billing.create({
@@ -57,7 +58,7 @@ router.get('/:p_No', async (req, res) => {
       { _id: 0, a_Idx: 0, createdAt: 0, p_Price: 0, __v: 0, p_Status: 0 },
     ).exec();
 
-    /** 게시물에 좋아요를 누른 유저 */
+    // wish 유저
     let userLike = false;
 
     const { authorization } = req.headers;
@@ -81,7 +82,7 @@ router.get('/:p_No', async (req, res) => {
       }
     }
 
-    /** like 가공 */
+    // p_Best 여부
     if (product.p_Like > 0) {
       product.p_Best = true;
     } else {

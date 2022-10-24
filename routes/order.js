@@ -5,21 +5,21 @@ const CancelProd = require('../schemas/cancelProd');
 const auth = require('../middlewares/user-middleware');
 const AdminOrder = require('../schemas/adminOrders');
 
-/** 주문조회 */
+//-- 주문조회
 router.get('/', auth, async (req, res) => {
   try {
     const { page, maxpost } = req.query;
-    /** maxpost 수만큼 page 처리 */
+    // maxpost 수만큼 page 처리
     Number(page, maxpost);
 
     let skipCnt = 0;
     page == 1 ? (skipCnt = 0) : (skipCnt = page * maxpost - maxpost);
 
-    /** token */
+    // token
     const { user } = res.locals;
     const u_Idx = user.u_Idx;
 
-    /** 전체 주문 수 */
+    // 전체 주문 수
     let cnt = await Order.find({ u_Idx }).count();
 
     let orders = await Order.find(
@@ -71,13 +71,13 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-/** 주문조회 상세정보 */
+//-- 주문조회 상세정보
 router.get('/:o_No', auth, async (req, res) => {
   try {
     let { o_No } = req.params;
 
     o_No = Number(o_No);
-    /** token */
+    // token
     const { user } = res.locals;
     const u_Idx = user.u_Idx;
 
@@ -115,7 +115,7 @@ router.get('/:o_No', auth, async (req, res) => {
   }
 });
 
-/** 주문취소 */
+//-- 주문취소
 router.put('/:o_No/cancel', auth, async (req, res) => {
   try {
     let { o_No } = req.params;
@@ -123,7 +123,7 @@ router.put('/:o_No/cancel', auth, async (req, res) => {
 
     o_No = Number(o_No);
 
-    /** token */
+    // token
     const { user } = res.locals;
     const u_Idx = user.u_Idx;
 
@@ -143,9 +143,9 @@ router.put('/:o_No/cancel', auth, async (req, res) => {
       );
     }
 
-    /** 취소 상품 리스트 생성 */
+    // 취소 상품 리스트 생성
     let cancelData = await CancelProd.findOne({ u_Idx, o_No }).exec();
-    /** cancelProd에 해당 o_No로 디비 있나 확인 후 있으면 삭제  */
+    // cancelProd에 해당 o_No로 디비 있나 확인 후 있으면 삭제
     if (cancelData != null) {
       await CancelProd.deleteOne({ u_Idx, o_No });
     }

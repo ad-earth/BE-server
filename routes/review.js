@@ -6,7 +6,7 @@ const auth = require('../middlewares/user-middleware');
 const Order = require('../schemas/orders');
 const AdminOrder = require('../schemas/adminOrders');
 
-/** 구매평 등록 */
+//-- 구매평 등록
 router.post('/:p_No', auth, async (req, res) => {
   try {
     let { p_No } = req.params;
@@ -14,12 +14,12 @@ router.post('/:p_No', auth, async (req, res) => {
 
     p_No = Number(p_No);
 
-    /** token */
+    // token
     const { user } = res.locals;
     const u_Idx = user.u_Idx;
     const u_Id = user.u_Id;
 
-    /** admin 판매 목록에 구매내역 있는지 확인 */
+    // admin 판매 목록에 구매내역 있는지 확인
     let findAdminOrder = await AdminOrder.findOne({
       p_No,
       u_Idx,
@@ -31,10 +31,10 @@ router.post('/:p_No', auth, async (req, res) => {
         errorMessage: '작성 권한 없음',
       });
     } else {
-      /** 댓글 고유 번호 */
+      // 댓글 고유 번호
       let r_No = new Date().valueOf();
 
-      /** 날짜 생성 */
+      // 날짜 생성
       const createdAt = new Date(+new Date() + 3240 * 10000).toISOString();
       await Review.create({
         r_No,
@@ -45,7 +45,7 @@ router.post('/:p_No', auth, async (req, res) => {
         u_Id,
         createdAt,
       });
-      /** db.product.p_Reviews + 1 */
+      // db.product.p_Reviews + 1
       let reviewsCnt = await Product.findOne({ p_No }, { p_Review: 1 }).exec();
 
       if (reviewsCnt == null) {
@@ -83,7 +83,7 @@ router.post('/:p_No', auth, async (req, res) => {
   }
 });
 
-/** 구매평 조회 */
+//-- 구매평 조회
 router.get('/:p_No', async (req, res) => {
   try {
     let { p_No } = req.params;
@@ -93,14 +93,14 @@ router.get('/:p_No', async (req, res) => {
     page = Number(page);
     maxpost = Number(maxpost);
 
-    /** maxpost 수만큼 page 처리 */
+    // maxpost 수만큼 page 처리
     let skipCnt = 0;
     page == 1 ? (skipCnt = 0) : (skipCnt = page * maxpost - maxpost);
 
-    /** 전체 게시물 수 */
+    // 전체 게시물 수
     const cnt = await Product.findOne({ p_No }, { _id: 0, p_Review: 1 }).exec();
 
-    /** 게시물 */
+    // 게시물
     let prodReview = await Review.find(
       { p_No },
       { _id: 0, __v: 0, p_No: 0, u_Idx: 0 },
@@ -139,7 +139,7 @@ router.get('/:p_No', async (req, res) => {
   }
 });
 
-/** 구매평 수정 */
+//-- 구매평 수정
 router.put('/:r_No', auth, async (req, res) => {
   try {
     let { r_No } = req.params;
@@ -147,11 +147,11 @@ router.put('/:r_No', auth, async (req, res) => {
 
     r_No = Number(r_No);
 
-    /** token */
+    // token
     const { user } = res.locals;
     const u_Idx = user.u_Idx;
 
-    /** token과 r_No의 u_Idx 일치하는지 확인 */
+    // token과 r_No의 u_Idx 일치하는지 확인
     let db = await Review.findOne({ r_No, u_Idx }).exec();
     if (db != null) {
       await Review.updateOne({ r_No, u_Idx }, { $set: { r_Content, r_Score } });
@@ -171,18 +171,18 @@ router.put('/:r_No', auth, async (req, res) => {
   }
 });
 
-/** 구매평 삭제 */
+//-- 구매평 삭제
 router.delete('/:r_No', auth, async (req, res) => {
   try {
     let { r_No } = req.params;
 
     r_No = Number(r_No);
 
-    /** token */
+    // token
     const { user } = res.locals;
     const u_Idx = user.u_Idx;
 
-    /** r_No와 u_Idx가 일치하는지 확인 */
+    // r_No와 u_Idx가 일치하는지 확인
     let db = await Review.findOne({ r_No, u_Idx }).exec();
     let reviewCnt = 0;
 

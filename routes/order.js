@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../schemas/orders');
+const Product = require('../schemas/products');
 const CancelProd = require('../schemas/cancelProd');
 const auth = require('../middlewares/user-middleware');
 const AdminOrder = require('../schemas/adminOrders');
@@ -40,11 +41,55 @@ router.get('/', auth, async (req, res) => {
     let orderList = [];
     let list = {};
     let date = 0;
+    let arrProdNo = [];
 
     for (let x in orders) {
       for (let y in orders[x].products) {
         delete orders[x].products[y].k_No;
+        // p_Status 표시할 productNo 빼오기
+        arrProdNo.push(orders[x].products[y].p_No);
       }
+
+      // p_Status : bool = false 삭제상품 또는 미노출 상품 / true 노출 중 상품
+
+      // 배열 안의 중복 값 제거
+      let statusProdNo = arrProdNo.filter((element, index) => {
+        return arrProdNo.indexOf(element) === index;
+      });
+
+      // let p_Status = true;
+      let objStatus = {};
+      let arrStatus = [];
+      for (let z in statusProdNo) {
+        let findStatus = await Product.findOne({ p_No: statusProdNo[z] });
+        if (findStatus == null) {
+          // 삭제된 상품
+          objStatus = {
+            p_No: statusProdNo[z],
+            p_Status: false,
+          };
+        } else {
+          // 디비에 존재하는 상품
+          objStatus = {
+            p_No: findStatus.p_No,
+            p_Status: findStatus.p_Status,
+          };
+        }
+        arrStatus.push(objStatus);
+      }
+
+      for (let a in orders[x].products) {
+        for (let b in arrStatus) {
+          // 상품번호 일치하면 상태 값 객체에 추가
+          if (orders[x].products[a].p_No == arrStatus[b].p_No) {
+            orders[x].products[a].p_Status = arrStatus[b].p_Status;
+          } else {
+            continue;
+          }
+        }
+      }
+
+      // YYYY-MM-DD
       date = orders[x].createdAt
         .toISOString()
         .replace('T', ' ')

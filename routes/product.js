@@ -251,12 +251,13 @@ router.get('/:p_No', auth, async (req, res) => {
         optionPrice: prodInfo.p_Option[i][3],
         optionCnt: prodInfo.p_Option[i][4],
       };
+
       arrOption.push(objOption);
     }
 
     prodInfo.p_Option = arrOption;
 
-    return res.status(200).send(prodInfo);
+    return res.status(200).send({ prodInfo });
   } catch (error) {
     console.log(error);
     return res.status(400).send({

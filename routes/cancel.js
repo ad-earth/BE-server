@@ -26,7 +26,10 @@ router.get('/', auth, async (req, res) => {
     if (cnt == 0) {
       cancelList = [];
     } else {
-      let db = await CancelProd.find({ u_Idx }).limit(maxpost).skip(skipCnt);
+      let db = await CancelProd.find({ u_Idx })
+        .limit(maxpost)
+        .skip(skipCnt)
+        .sort('-createdAt');
       let objList = {};
       for (let x in db) {
         // YYYY-MM-DD

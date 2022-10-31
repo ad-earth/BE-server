@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
   try {
     // best
     let bestProd = await Product.find(
-      {},
+      { p_Status: true },
       {
         _id: 0,
         p_No: 1,
@@ -39,7 +39,7 @@ router.get('/', async (req, res) => {
 
     // new
     let newProd = await Product.find(
-      {},
+      { p_Status: true },
       {
         _id: 0,
         p_No: 1,
@@ -112,7 +112,7 @@ router.get('/search', async (req, res) => {
         .exec();
       for (let x = 0; x < onKeyword.length; x++) {
         let arrProd = await Product.find(
-          { p_No: onKeyword[x].p_No },
+          { p_No: onKeyword[x].p_No, p_Status: true },
           {
             _id: 0,
             p_No: 1,
@@ -155,7 +155,7 @@ router.get('/search', async (req, res) => {
 
     for (let y in offKeyword) {
       let arrProd2 = await Product.find(
-        { p_No: offKeyword[y].p_No },
+        { p_No: offKeyword[y].p_No, p_Status: true },
         {
           _id: 0,
           p_No: 1,
@@ -281,10 +281,11 @@ router.get('/products/:p_Category', async (req, res) => {
 
     let objFind = {};
     if (p_Category == '전체') {
-      objFind = {};
+      objFind = { p_Status: true };
     } else {
-      objFind = { p_Category: p_Category };
+      objFind = { p_Category: p_Category, p_Status: true };
     }
+
     // 카테고리 전체 게시물 수
     let cnt = await Product.find(objFind).count();
 

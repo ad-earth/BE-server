@@ -106,7 +106,8 @@ router.get('/:p_No', async (req, res) => {
       { _id: 0, __v: 0, p_No: 0, u_Idx: 0 },
     )
       .limit(maxpost)
-      .skip(skipCnt);
+      .skip(skipCnt)
+      .sort('-createdAt');
 
     let arrResult = [];
     for (let a in prodReview) {

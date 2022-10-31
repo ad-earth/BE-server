@@ -9,9 +9,10 @@ const AdminOrder = require('../schemas/adminOrders');
 //-- 주문조회
 router.get('/', auth, async (req, res) => {
   try {
-    const { page, maxpost } = req.query;
+    let { page, maxpost } = req.query;
     // maxpost 수만큼 page 처리
-    Number(page, maxpost);
+    page = Number(page);
+    maxpost = Number(maxpost);
 
     let skipCnt = 0;
     page == 1 ? (skipCnt = 0) : (skipCnt = page * maxpost - maxpost);
@@ -36,7 +37,8 @@ router.get('/', auth, async (req, res) => {
       },
     )
       .limit(maxpost)
-      .skip(skipCnt);
+      .skip(skipCnt)
+      .sort('-createdAt');
 
     let orderList = [];
     let list = {};

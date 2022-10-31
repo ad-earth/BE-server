@@ -88,12 +88,16 @@ router.get('/search', async (req, res) => {
     page == 1 ? (skipCnt = 0) : (skipCnt = page * maxpost - maxpost);
 
     // 키워드를 등록한 전체 게시물 수
-    const cnt = await Keyword.find({ keyword: keyword }).count();
+    const cnt = await Keyword.find({
+      keyword: keyword,
+      p_Status: true,
+    }).count();
 
     // 광고 on 상태인 게시물 수
     const onCnt = await Keyword.find({
       keyword: keyword,
       k_Status: true,
+      p_Status: true,
     }).count();
 
     let adProducts = [];
@@ -105,12 +109,14 @@ router.get('/search', async (req, res) => {
         {
           keyword: keyword,
           k_Status: true,
+          p_Status: true,
         },
         { _id: 0, p_No: 1, k_Level: 1 },
       )
         .sort('k_Level')
         .exec();
-      for (let x = 0; x < onKeyword.length; x++) {
+      console.log('onKeyword: ', onKeyword);
+      for (let x in onKeyword) {
         let arrProd = await Product.find(
           { p_No: onKeyword[x].p_No, p_Status: true },
           {
@@ -136,7 +142,6 @@ router.get('/search', async (req, res) => {
           adProducts.push(objProd);
         }
       }
-      maxpost = maxpost - onCnt;
     } else {
       maxpost = 2;
       skipCnt = maxpost - onCnt;
@@ -146,6 +151,7 @@ router.get('/search', async (req, res) => {
       {
         keyword: keyword,
         k_Status: false,
+        p_Status: true,
       },
       { _id: 0, p_No: 1 },
     )

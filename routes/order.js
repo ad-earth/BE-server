@@ -57,7 +57,6 @@ router.get('/', auth, async (req, res) => {
         return arrProdNo.indexOf(element) === index;
       });
 
-      // let p_Status = true;
       let objStatus = {};
       let arrStatus = [];
       for (let z in statusProdNo) {
@@ -133,11 +132,50 @@ router.get('/:o_No', auth, async (req, res) => {
 
     delete db.address.d_No;
 
+    // YYYY-MM-DD
+    let date = db.createdAt.toISOString().replace('T', ' ').substring(0, 10);
+
+    // p_Status: bool = false 삭제상품 또는 미노출 상품 / true 노출 중 상품
+    let arrProdNo = [];
     for (let x in db.products) {
       delete db.products[x].k_No;
+      arrProdNo.push(db.products[x].p_No);
     }
 
-    let date = db.createdAt.toISOString().replace('T', ' ').substring(0, 10);
+    // arrProdNo 중복 값 제거
+    let statusProdNo = arrProdNo.filter((element, index) => {
+      return arrProdNo.indexOf(element) === index;
+    });
+
+    let objStatus = {};
+    let arrStatus = [];
+    for (let y in statusProdNo) {
+      let findStatus = await Product.findOne({ p_No: statusProdNo[y] });
+      if (findStatus == null) {
+        // 삭제된 상품
+        objStatus = {
+          p_No: statusProdNo[y],
+          p_Status: false,
+        };
+      } else {
+        // 디비에 존재하는 상품
+        objStatus = {
+          p_No: findStatus.p_No,
+          p_Status: findStatus.p_Status,
+        };
+      }
+      arrStatus.push(objStatus);
+    }
+
+    for (let z in db.products) {
+      for (let a in arrStatus) {
+        if (db.products[z].p_No == arrStatus[a].p_No) {
+          db.products[z].p_Status = arrStatus[a].p_Status;
+        } else {
+          continue;
+        }
+      }
+    }
 
     let result = {
       o_No: db.o_No,

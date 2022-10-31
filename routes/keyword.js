@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Keyword = require('../schemas/keywords');
+const Product = require('../schemas/products');
 const Admin = require('../schemas/admins');
 const auth = require('../middlewares/admin-middleware');
 
@@ -77,6 +78,12 @@ router.post('/:p_No', auth, async (req, res) => {
     // 기존에 등록한 키워드 있는지 확인
     let keywordData = await Keyword.find({ p_No, keyword }).exec();
 
+    // 해당 상품의 p_Status 가져오기
+    let prodStatus = await Product.findOne(
+      { p_No },
+      { _id: 0, p_Status: 1 },
+    ).exec();
+
     // 현재 키워드로 등록된 키워드가 없다면 입찰금 순위 확인
     let levelCost = await Keyword.findOne(
       {
@@ -104,13 +111,27 @@ router.post('/:p_No', auth, async (req, res) => {
       return res.status(400).send({
         errorMessage: '이미 등록된 키워드입니다.',
       });
+    } else if (prodStatus.p_Status == false) {
+      objData = {
+        p_No,
+        keyword,
+        k_Level: 5,
+        k_Cost: 0,
+        k_Status: false,
+      };
     } else if (
       k_Status == false ||
       (db.length == 0 && k_Level == 5) ||
       (db.length != 0 && k_Level == 5)
     ) {
       // 5 순위이면 광고 off 상태로 키워드 등록
-      objData = { p_No, keyword, k_Level: 5, k_Cost: 0, k_Status: false };
+      objData = {
+        p_No,
+        keyword,
+        k_Level: 5,
+        k_Cost: 0,
+        k_Status: false,
+      };
     } else if (levelCost != null && levelCost.k_Cost >= k_Cost) {
       // 현재 키워드로 등록된 키워드가 없다면 입찰금 순위 확인 후
       // 입찰금이 기존 입찰금보다 가격이 낮거나 같으면 errorMessage 반환
@@ -218,6 +239,7 @@ router.post('/:p_No', auth, async (req, res) => {
     objData.k_No = k_No;
     objData.createdAt = createdAt;
     objData.a_Idx = a_Idx;
+    objData.p_Status = prodStatus.p_Status;
 
     await Keyword.create(objData);
 
@@ -251,6 +273,11 @@ router.put('/:p_No', auth, async (req, res) => {
       { _id: 0, a_Charge: 1 },
     ).exec();
 
+    let statusProd = await Product.findOne(
+      { p_No },
+      { _id: 0, p_Status: 1 },
+    ).exec();
+
     let levelCost = await Keyword.findOne(
       {
         p_No: { $ne: p_No },
@@ -275,11 +302,22 @@ router.put('/:p_No', auth, async (req, res) => {
       return res.status(400).send({
         errorMessage: `키워드 ${keyword}의 입찰금 ${k_Cost}원은 순위에 맞는 입찰금이 아닙니다.`,
       });
-    } else if (k_Status == false || k_Level == 5) {
+    } else if (
+      statusProd.p_Status == false ||
+      k_Status == false ||
+      k_Level == 5
+    ) {
       // k_Status = false 또는 k_Level = 5면 true > false로 수정
       await Keyword.updateOne(
         { p_No, keyword },
-        { $set: { k_Status: false, k_Level: 5, k_Click: 0, k_Cost: 0 } },
+        {
+          $set: {
+            k_Status: false,
+            k_Level: 5,
+            k_Click: 0,
+            k_Cost: 0,
+          },
+        },
       );
     } else {
       // 원하는 순위가 현재 비어있는 순위인지 확인
@@ -416,6 +454,69 @@ router.delete('/:p_No', auth, async (req, res) => {
 
     for (let i in keywordList) {
       await Keyword.deleteOne({ k_No: keywordList[i], p_No });
+    }
+
+    return res.status(200).send({
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).send({
+      message: '잘못된 요청입니다.',
+    });
+  }
+});
+
+//-- 테스트 키워드 수정
+router.put('/', async (req, res) => {
+  try {
+    let productNo = await Product.find({}, { _id: 0, p_No: 1, p_Status: 1 });
+    for (let a in productNo) {
+      if (productNo[a].p_Status == false) {
+        await Keyword.updateMany(
+          { p_No: productNo[a].p_No },
+          {
+            $set: {
+              k_Status: false,
+              p_Status: false,
+              k_Level: 5,
+              k_Cost: 0,
+              k_Click: 0,
+            },
+          },
+        );
+      } else {
+        await Keyword.updateMany(
+          { p_No: productNo[a].p_No },
+          {
+            $set: {
+              p_Status: productNo[a].p_Status,
+            },
+          },
+        );
+      }
+    }
+
+    let keywordProdNo = await Keyword.find({}, { _id: 0, p_No: 1 });
+    console.log('keywordProdNo: ', keywordProdNo);
+    let arrKeyword = [];
+    for (let b in keywordProdNo) {
+      arrKeyword.push(keywordProdNo[b].p_No);
+    }
+    console.log('arrKeyword: ', arrKeyword);
+    let arr = arrKeyword.filter((element, index) => {
+      return arrKeyword.indexOf(element) === index;
+    });
+    console.log('arr: ', arr);
+
+    for (let c in arr) {
+      let findProduct = await Product.findOne({ p_No: arr[c] }).exec();
+      console.log('findProduct: ', findProduct);
+      if (findProduct == null) {
+        await Keyword.deleteMany({ p_No: arr[c] });
+      } else {
+        continue;
+      }
     }
 
     return res.status(200).send({

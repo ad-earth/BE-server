@@ -183,12 +183,31 @@ router.put('/status/:p_No', auth, async (req, res) => {
     ).exec();
 
     let status = true;
+    let keywordSet = {};
 
     if (a_Idx == db.a_Idx) {
       if (db.p_Status == true) {
         status = false;
+        // 상품 미노출 상태로 변경이라 키워드 전체 미노출 변경
+        keywordSet = {
+          k_Status: status,
+          k_Level: 5,
+          k_Cost: 0,
+          p_Status: false,
+        };
       } else {
         status = true;
+        keywordSet = { p_Status: true };
+      }
+      let keywordDb = await Keyword.find({ p_No }).count();
+
+      if (keywordDb != 0) {
+        await Keyword.updateMany(
+          { p_No },
+          {
+            $set: keywordSet,
+          },
+        );
       }
       await Product.updateOne(
         { p_No },
@@ -257,7 +276,7 @@ router.get('/:p_No', auth, async (req, res) => {
 
     prodInfo.p_Option = arrOption;
 
-    return res.status(200).send({ prodInfo });
+    return res.status(200).send(prodInfo);
   } catch (error) {
     console.log(error);
     return res.status(400).send({
@@ -360,9 +379,9 @@ router.delete('/', auth, async (req, res) => {
         // 등록 상품 삭제
         await Product.deleteOne({ p_No: p_No[i] });
         // 등록 키워드 삭제
-        await Keyword.deleteOne({ p_No: p_No[i], a_Idx });
+        await Keyword.deleteMany({ p_No: p_No[i], a_Idx });
         // 위시리스트 삭제
-        await Wish.deleteMany({ p_No });
+        await Wish.deleteMany({ p_No: p_No[i] });
       }
 
       return res.status(200).send({

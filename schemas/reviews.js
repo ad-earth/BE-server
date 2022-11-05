@@ -10,7 +10,7 @@ const ReviewSchema = new Schema({
   u_Id: { type: String, required: true },
   p_No: { type: Number, required: true },
   o_No: { type: Number, required: false },
-  r_Score: { type: Object, required: true },
+  r_Score: { type: Number, required: true },
   r_Content: { type: String, required: true },
   createdAt: { type: Date, required: true },
 });

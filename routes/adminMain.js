@@ -120,10 +120,10 @@ router.get('/popular-keywords', async (req, res) => {
       for (let x in data) {
         keywords.push(data[x]._id.keyword);
       }
-      if (keywords.length != 9) {
+      if (keywords.length != 10) {
         // 키워드가 10개 미만이면 남은 키워드 자리 '-'으로 반환
         let pushCnt = 10 - keywords.length;
-        for (let y in pushCnt) {
+        for (let y = 0; y < pushCnt; y++) {
           keywords.push('-');
         }
       }

@@ -409,7 +409,6 @@ router.put('/content/:p_No', async (req, res) => {
     p_No = Number(p_No);
 
     let result = await Product.updateOne({ p_No }, { $set: { p_Content } });
-    console.log('result: ', result);
 
     res.status(201).send({
       success: true,

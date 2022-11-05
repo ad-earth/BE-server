@@ -115,7 +115,7 @@ router.get('/search', async (req, res) => {
       )
         .sort('k_Level')
         .exec();
-      console.log('onKeyword: ', onKeyword);
+
       for (let x in onKeyword) {
         let arrProd = await Product.find(
           { p_No: onKeyword[x].p_No, p_Status: true },
@@ -194,7 +194,7 @@ router.get('/search', async (req, res) => {
       adProducts[a].p_Thumbnail = adProducts[a].p_Thumbnail.slice(0, 2);
     }
     for (let b in products) {
-      products[b].p_Thumbnail = products[b].p_Thumbnail.slice(0, 1);
+      products[b].p_Thumbnail = products[b].p_Thumbnail.slice(0, 2);
     }
 
     // Best 여부

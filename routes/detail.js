@@ -15,12 +15,11 @@ const jwtKey = process.env.U_TOKEN;
 router.get('/:p_No', async (req, res) => {
   let { p_No } = req.params;
   let { keyword } = req.query;
-  console.log('찍혀라 키워드 !!!!! keyword: ', keyword);
 
   p_No = Number(p_No);
 
   let k_No = 0;
-  if (keyword) {
+  if (keyword != 'null') {
     // db.expense 현재 키워드, 키워드번호, 입찰금 생성 및 charge 금액 차감
     // keyword db의 현재 키워드 클릭수 +1
     let keywordData = await Keyword.findOne({ p_No, keyword }).exec();

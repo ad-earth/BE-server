@@ -498,20 +498,19 @@ router.put('/', async (req, res) => {
     }
 
     let keywordProdNo = await Keyword.find({}, { _id: 0, p_No: 1 });
-    console.log('keywordProdNo: ', keywordProdNo);
+
     let arrKeyword = [];
     for (let b in keywordProdNo) {
       arrKeyword.push(keywordProdNo[b].p_No);
     }
-    console.log('arrKeyword: ', arrKeyword);
+
     let arr = arrKeyword.filter((element, index) => {
       return arrKeyword.indexOf(element) === index;
     });
-    console.log('arr: ', arr);
 
     for (let c in arr) {
       let findProduct = await Product.findOne({ p_No: arr[c] }).exec();
-      console.log('findProduct: ', findProduct);
+
       if (findProduct == null) {
         await Keyword.deleteMany({ p_No: arr[c] });
       } else {

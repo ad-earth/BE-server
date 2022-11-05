@@ -49,6 +49,20 @@ router.post('/complete', auth, async (req, res) => {
   try {
     let { address, products, o_Price } = req.body;
 
+    let arrProductOptionInfo = [];
+    for (let b in products) {
+      if (products[b].option[0] == null) {
+        arrProductOptionInfo = [null, null, 0];
+        arrProductOptionInfo.push(products[b].totalQty);
+        arrProductOptionInfo.push(products[b].totalPrice);
+        products[b].option.push(arrProductOptionInfo);
+      } else {
+        for (let c in products[b].option) {
+          products[b].option[c].splice(1, 1);
+        }
+      }
+    }
+
     // indexedDb 변수명 처리
     let objProductData = {};
     let arrProductData = [];
@@ -56,7 +70,7 @@ router.post('/complete', auth, async (req, res) => {
       objProductData = {
         k_No: products[w].keywordNo,
         p_No: products[w].id,
-        p_Thumbnail: [products[w].thumbnail],
+        p_Thumbnail: products[w].thumbnail,
         p_Category: products[w].category,
         a_Brand: products[w].brand,
         p_Name: products[w].name,
@@ -64,7 +78,7 @@ router.post('/complete', auth, async (req, res) => {
         p_Discount: products[w].discount,
         p_Option: products[w].option,
         p_Price: products[w].totalPrice,
-        p_Cnt: products[w].totalCnt,
+        p_Cnt: products[w].totalQty,
       };
       arrProductData.push(objProductData);
     }

@@ -52,11 +52,13 @@ router.post('/complete', auth, async (req, res) => {
     let arrProductOptionInfo = [];
     for (let b in products) {
       if (products[b].option[0] == null) {
+        // 빈배열이면 가공
         arrProductOptionInfo = [null, null, 0];
         arrProductOptionInfo.push(products[b].totalQty);
         arrProductOptionInfo.push(products[b].totalPrice);
         products[b].option.push(arrProductOptionInfo);
       } else {
+        // 배열 요소 colorCode 삭제
         for (let c in products[b].option) {
           products[b].option[c].splice(1, 1);
         }

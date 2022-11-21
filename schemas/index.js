@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const localDB = process.env.DB_DEV;
-const devDB = process.env.DB_PRODUCTION;
+// const devDB = process.env.DB_PRODUCTION;
 
 const connect = () => {
   mongoose

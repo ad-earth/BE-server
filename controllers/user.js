@@ -235,21 +235,8 @@ const client = {
           token,
         };
 
-        let getList = await Cart.find(
-          { u_Idx },
-          { _id: 0, __v: 0, u_Idx: 0 },
-        ).exec();
-
-        let cartList = [];
-        if (getList.length == 0) {
-          cartList = [];
-        } else {
-          cartList = getList[0].cartList;
-        }
-
         return res.status(200).send({
           userInfo,
-          cartList,
         });
       } else {
         return res.status(401).send({
@@ -309,7 +296,12 @@ const client = {
       const { user } = res.locals;
       const u_Idx = user.u_Idx;
 
+      let cartData = await Cart.find({ u_Idx }).exec();
+      if (cartData.length !== 0) {
+        await Cart.deleteMany({ u_Idx });
+      }
       await User.deleteOne({ u_Idx });
+
       return res.status(200).send({
         success: true,
       });

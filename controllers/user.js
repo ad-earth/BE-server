@@ -235,8 +235,11 @@ const client = {
           token,
         };
 
+        let cartStatus = await Cart.find({ u_Idx, c_Type: 'c' }).count();
+
         return res.status(200).send({
           userInfo,
+          cartStatus,
         });
       } else {
         return res.status(401).send({

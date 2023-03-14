@@ -31,8 +31,10 @@ const cart = {
         await Cart.updateOne(findObj, { $set: setObj });
       }
 
+      const cartStatus = await Cart.find({ u_Idx, c_Type: 'c' }).count();
+
       return res.status(200).send({
-        success: true,
+        cartStatus,
       });
     } catch (error) {
       console.log(error);
@@ -53,7 +55,7 @@ const cart = {
         { u_Idx, c_Type: cartType },
         { _id: 0, k_No: 1, p_No: 1, p_Option: 1 },
       ).exec();
-      console.log('findCartData: ', findCartData);
+
       let cartList = [];
       let cartObj = {};
       let o_Price = 0;
@@ -132,11 +134,12 @@ const cart = {
       const u_Idx = user.u_Idx;
 
       for (let i in productList) {
-        productList[i];
         await Cart.deleteOne({ u_Idx, c_Type, p_No: productList[i] });
       }
+
+      const cartStatus = await Cart.find({ u_Idx, c_Type: 'c' }).count();
       return res.status(200).send({
-        success: true,
+        cartStatus,
       });
     } catch (error) {
       console.log(error);

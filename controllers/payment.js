@@ -1,17 +1,20 @@
 const User = require('../schemas/users');
 const Delivery = require('../schemas/deliveries');
 const Product = require('../schemas/products');
+const Cart = require('../schemas/carts');
 const Order = require('../schemas/orders');
 const AdminOrder = require('../schemas/adminOrders');
 
 const payment = {
-  getPaymentInfo: async (req, res) => {
+  getPayment: async (req, res) => {
     try {
+      const { c_Type } = req.params;
+      const { p_No } = req.query;
+
       // token
       const { user } = res.locals;
       const u_Idx = user.u_Idx;
 
-      // userInfo
       const userInfo = await User.findOne(
         { u_Idx },
         {
@@ -24,17 +27,76 @@ const payment = {
         },
       ).exec();
 
-      // addressList
       const addressList = await Delivery.find(
         { u_Idx },
         { _id: 0, __v: 0 },
       ).exec();
 
+      const prodNo = p_No.split(',');
+
+      let products = [];
+
+      for (let a in prodNo) {
+        const numProdNo = Number(prodNo[a]);
+        let findCartData = await Cart.findOne(
+          { u_Idx, c_Type, p_No: numProdNo },
+          { _id: 0, p_No: 1, p_Option: 1, k_No: 1 },
+        );
+
+        let findProdData = await Product.findOne(
+          { p_No: numProdNo },
+          {
+            _id: 0,
+            a_Brand: 1,
+            p_No: 1,
+            p_Category: 1,
+            p_Sale: 1,
+            p_Discount: 1,
+            p_Name: 1,
+            p_Cost: 1,
+            p_Thumbnail: 1,
+          },
+        );
+
+        let p_Cnt = 0;
+        let p_Price = 0;
+
+        for (let b in findCartData.p_Option) {
+          p_Cnt = p_Cnt + findCartData.p_Option[b][4];
+          p_Price = p_Price + findCartData.p_Option[b][5];
+        }
+
+        let cartObj = {
+          k_No: findCartData.k_No,
+          p_No: findCartData.p_No,
+          a_Brand: findProdData.a_Brand,
+          p_Thumbnail: findProdData.p_Thumbnail,
+          p_Category: findProdData.p_Category,
+          p_Cost: findProdData.p_Cost,
+          p_Sale: findProdData.p_Sale,
+          p_Discount: findProdData.p_Discount,
+          p_Name: findProdData.p_Name,
+          p_Option: findCartData.p_Option,
+          p_Cnt: p_Cnt,
+          p_Price: p_Price,
+        };
+
+        products.push(cartObj);
+      }
+
+      let o_Price = 0;
+      for (let c in products) {
+        o_Price = o_Price + products[c].p_Price;
+      }
+
       return res.status(200).send({
         userInfo,
         addressList,
+        products,
+        o_Price,
       });
     } catch (error) {
+      console.log(error);
       return res.status(400).send({
         message: '잘못된 요청입니다.',
       });
@@ -42,45 +104,8 @@ const payment = {
   },
   createPayment: async (req, res) => {
     try {
+      const { c_Type } = req.params;
       let { address, products, o_Price } = req.body;
-
-      let arrProductOptionInfo = [];
-      for (let b in products) {
-        if (products[b].option[0] == null) {
-          // 빈배열이면 가공
-          arrProductOptionInfo = [null, null, 0];
-          arrProductOptionInfo.push(products[b].totalQty);
-          arrProductOptionInfo.push(products[b].totalPrice);
-          products[b].option.push(arrProductOptionInfo);
-        } else {
-          // 배열 요소 colorCode 삭제
-          for (let c in products[b].option) {
-            products[b].option[c].splice(1, 1);
-          }
-        }
-      }
-
-      // indexedDb 변수명 처리
-      let objProductData = {};
-      let arrProductData = [];
-      for (let w in products) {
-        objProductData = {
-          k_No: products[w].keywordNo,
-          p_No: products[w].id,
-          p_Thumbnail: products[w].thumbnail,
-          p_Category: products[w].category,
-          a_Brand: products[w].brand,
-          p_Name: products[w].name,
-          p_Cost: products[w].price,
-          p_Discount: products[w].discount,
-          p_Option: products[w].option,
-          p_Price: products[w].totalPrice,
-          p_Cnt: products[w].totalQty,
-        };
-        arrProductData.push(objProductData);
-      }
-
-      products = arrProductData;
 
       // token
       const { user } = res.locals;
@@ -178,7 +203,6 @@ const payment = {
         };
       }
 
-      // products[i].o_Status = "주문완료"
       for (let x in products) {
         products[x].o_Status = '주문완료';
         products[x].r_Status = false;
@@ -218,6 +242,10 @@ const payment = {
         });
       }
 
+      for (let k in products) {
+        await Cart.deleteOne({ u_Idx, c_Type: c_Type, p_No: products[k].p_No });
+      }
+
       return res.status(201).send({
         success: true,
       });
@@ -241,6 +269,8 @@ const payment = {
         .sort('-o_No')
         .exec();
 
+      let cartData = await Cart.find({ u_Idx, c_Type: 'c' }).count();
+
       let result = {
         o_No: orders.o_No,
         o_Price: orders.o_Price,
@@ -249,6 +279,7 @@ const payment = {
         d_Address1: orders.address.d_Address1,
         d_Address2: orders.address.d_Address2,
         d_Address3: orders.address.d_Address3,
+        cartStatus: cartData,
       };
 
       return res.status(200).send(result);

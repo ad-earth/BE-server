@@ -31,10 +31,8 @@ const cart = {
         await Cart.updateOne(findObj, { $set: setObj });
       }
 
-      const cartStatus = await Cart.find({ u_Idx, c_Type: 'c' }).count();
-
       return res.status(200).send({
-        cartStatus,
+        success: true,
       });
     } catch (error) {
       console.log(error);
@@ -127,19 +125,21 @@ const cart = {
   deleteCart: async (req, res) => {
     try {
       const { c_Type } = req.params;
-      const { productList } = req.body;
+      const { p_No } = req.query;
 
       // token
       const { user } = res.locals;
       const u_Idx = user.u_Idx;
 
-      for (let i in productList) {
-        await Cart.deleteOne({ u_Idx, c_Type, p_No: productList[i] });
+      const prodList = p_No.split(',');
+
+      for (let i in prodList) {
+        const prodNum = Number(prodList[i]);
+        await Cart.deleteOne({ u_Idx, c_Type, p_No: prodNum });
       }
 
-      const cartStatus = await Cart.find({ u_Idx, c_Type: 'c' }).count();
       return res.status(200).send({
-        cartStatus,
+        success: true,
       });
     } catch (error) {
       console.log(error);

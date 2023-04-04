@@ -116,7 +116,7 @@ const payment = {
         let status = await Product.findOne(
           { p_No: products[i].p_No },
           { _id: 0, p_Status: 1, p_Soldout: 1, p_No: 1, p_Name: 1 },
-        );
+        ).exec();
 
         if (status.p_Soldout == true || status.p_Status == false) {
           return res.status(404).send({
@@ -126,6 +126,13 @@ const payment = {
       }
 
       let memo = address.d_Memo;
+
+      const shippingList = await Delivery.find({ u_Idx: u_Idx }).count();
+
+      if (shippingList >= 5) {
+        // 배송지 5곳 이상이면 배송지 한곳 삭제 후 저장
+        await Delivery.deleteOne({ u_Idx: u_Idx });
+      }
 
       if (address.d_No == 0) {
         // 신규 배송지 추가
@@ -191,7 +198,11 @@ const payment = {
         };
       } else {
         // d_No 기존에 존재함
-        let trueNo = await Delivery.findOne({ d_No: address.d_No }).exec();
+        let trueNo = await Delivery.findOne({
+          d_No: address.d_No,
+          u_Idx: u_Idx,
+        }).exec();
+
         address = {
           d_No: trueNo.d_No,
           d_Name: trueNo.d_Name,
@@ -269,8 +280,6 @@ const payment = {
         .sort('-o_No')
         .exec();
 
-      let cartData = await Cart.find({ u_Idx, c_Type: 'c' }).count();
-
       let result = {
         o_No: orders.o_No,
         o_Price: orders.o_Price,
@@ -279,7 +288,6 @@ const payment = {
         d_Address1: orders.address.d_Address1,
         d_Address2: orders.address.d_Address2,
         d_Address3: orders.address.d_Address3,
-        cartStatus: cartData,
       };
 
       return res.status(200).send(result);

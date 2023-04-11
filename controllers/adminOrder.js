@@ -108,7 +108,7 @@ const adminOrder = {
       cnt = await AdminOrder.find(objFind).count();
 
       arrProd = await AdminOrder.find(objFind)
-        .sort('o_Date')
+        .sort('-o_Date')
         .limit(maxpost)
         .skip(skipCnt);
 

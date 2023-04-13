@@ -210,6 +210,14 @@ const keyword = {
       // 전체 게시물 수
       let cnt = await Keyword.find({ a_Idx, p_No }).count();
 
+      // 키워드 상태
+      let findStatus = await Product.findOne(
+        { a_Idx, p_No },
+        { _id: 0, p_Status: 1 },
+      ).exec();
+
+      let p_Status = findStatus.p_Status;
+
       let keywordList = [];
 
       if (cnt != 0) {
@@ -239,6 +247,7 @@ const keyword = {
 
       return res.status(200).send({
         cnt,
+        p_Status,
         keywordList,
       });
     } catch (error) {

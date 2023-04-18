@@ -31,8 +31,10 @@ const cart = {
         await Cart.updateOne(findObj, { $set: setObj });
       }
 
+      const cartStatus = await Cart.find({ u_Idx, c_Type: 'c' }).count().exec();
+
       return res.status(200).send({
-        success: true,
+        cartStatus,
       });
     } catch (error) {
       console.log(error);

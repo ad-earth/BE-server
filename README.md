@@ -54,6 +54,7 @@
 
 ### API
 
+- [Notion API 문서](https://huitopia.notion.site/huitopia/API-25004161e74048a18c6cdcdf024c502c)
 - [Postman API 문서](https://documenter.getpostman.com/view/18707207/2s7Z7ZnZDy)
 
 ## 3. Project Architecture

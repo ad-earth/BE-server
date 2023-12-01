@@ -54,14 +54,25 @@
 
 ### API
 
-- [Notion API 문서](https://huitopia.notion.site/huitopia/API-25004161e74048a18c6cdcdf024c502c)
+- [Notion API 문서](https://huitopia.notion.site/API-69a626bd3b964e8ba538a4f57d3ea589?pvs=4)
 - [Postman API 문서](https://documenter.getpostman.com/view/18707207/2s7Z7ZnZDy)
 
 ## 3. Project Architecture
 
 <img width="100%" src="https://user-images.githubusercontent.com/87823892/210491178-cec73dd2-05bd-4902-9891-4b8b5886f1f7.jpeg">
 
-## 4. Tech Stacks
+## 4. DB
+
+### ERD
+
+- [ERD Diagram](https://www.erdcloud.com/d/XYfwe6jGyuuxXBgiL)
+  <img width="100%" src="https://user-images.githubusercontent.com/87823892/210501277-f0df2aec-1071-4510-a9c3-f512c348e691.png">
+
+### Schema
+
+- [Notion Schema](https://huitopia.notion.site/DB-4f21ae9abe784d82bf08b73c70355dc2?pvs=4)
+
+## 5. Tech Stacks
 
 | Name      | Tech       |
 | --------- | ---------- |
@@ -70,7 +81,7 @@
 | Database  | MongoDB    |
 | Framework | Express.js |
 
-## 5. Library
+## 6. Library
 
 | Package      | version | Description                                      |
 | ------------ | ------- | ------------------------------------------------ |
